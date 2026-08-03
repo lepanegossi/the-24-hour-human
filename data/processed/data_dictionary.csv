@@ -1,0 +1,37 @@
+table,column,description,unit
+country_profile.csv,iso3,"Country code (ISO 3166-1 alpha-3)",text
+country_profile.csv,country,"Country name in English",text
+country_profile.csv,region,"Region (Americas / Europe / Asia / Oceania / Africa)",text
+country_profile.csv,lei_min,"Leisure",minutes/day
+country_profile.csv,oth_min,"Other (includes commuting/transit)",minutes/day
+country_profile.csv,paw_min,"Paid work/study",minutes/day
+country_profile.csv,pca_min,"Personal care (includes sleep, meals, hygiene)",minutes/day
+country_profile.csv,upw_min,"Unpaid work (housework, caring for others)",minutes/day
+country_profile.csv,total_min,"Sum of the 5 categories (validation: ~1440 = 24h)",minutes/day
+country_profile.csv,pca_h,"Personal care (= pca_min / 60)",hours/day
+country_profile.csv,paw_h,"Paid work/study (= paw_min / 60)",hours/day
+country_profile.csv,upw_h,"Unpaid work (= upw_min / 60)",hours/day
+country_profile.csv,lei_h,"Leisure (= lei_min / 60)",hours/day
+country_profile.csv,oth_h,"Other (= oth_min / 60)",hours/day
+country_profile.csv,gdp_per_capita_ppp,"Income: GDP per capita, PPP",international $
+country_profile.csv,life_satisfaction,"Happiness: life satisfaction (Cantril ladder)",scale 0-10
+country_profile.csv,life_satisfaction_year,"Reference year of the happiness value",year
+country_profile.csv,annual_working_hours,"Working hours per year per worker",hours/year
+country_profile.csv,annual_working_hours_year,"Reference year of the working hours",year
+country_profile.csv,retirement_age_men,"Average effective retirement age (men)",years
+country_profile.csv,retirement_age_men_year,"Reference year of the retirement age",year
+timeuse_by_sex.csv,iso3,"Country code (ISO 3166-1 alpha-3)",text
+timeuse_by_sex.csv,country,"Country name in English",text
+timeuse_by_sex.csv,region,"Region (Americas / Europe / Asia / Oceania / Africa)",text
+timeuse_by_sex.csv,sex,"Sex: F (women) / M (men)",text
+timeuse_by_sex.csv,lei_min,"Leisure",minutes/day
+timeuse_by_sex.csv,oth_min,"Other (includes commuting/transit)",minutes/day
+timeuse_by_sex.csv,paw_min,"Paid work/study",minutes/day
+timeuse_by_sex.csv,pca_min,"Personal care (includes sleep, meals, hygiene)",minutes/day
+timeuse_by_sex.csv,upw_min,"Unpaid work (housework, caring for others)",minutes/day
+timeuse_by_sex.csv,total_min,"Sum of the 5 categories (validation: ~1440 = 24h)",minutes/day
+timeuse_by_sex.csv,pca_h,"Personal care (= pca_min / 60)",hours/day
+timeuse_by_sex.csv,paw_h,"Paid work/study (= paw_min / 60)",hours/day
+timeuse_by_sex.csv,upw_h,"Unpaid work (= upw_min / 60)",hours/day
+timeuse_by_sex.csv,lei_h,"Leisure (= lei_min / 60)",hours/day
+timeuse_by_sex.csv,oth_h,"Other (= oth_min / 60)",hours/day
