@@ -220,9 +220,15 @@ for iso, name, cont, sig, bio in PERS:
         "country": r["country"],
         "upwF": gByIso.get(iso, {}).get("F", 0.0), "upwM": gByIso.get(iso, {}).get("M", 0.0),
         "trivia": [{"ic": ic, "t": t} for ic, t in TRIVIA[iso]],
-        # slot de vídeo: o personagem falando sobre o próprio dia. Enquanto o
-        # arquivo não existir, o modal mostra um placeholder no lugar.
+        # Slot de vídeo: o personagem falando sobre o próprio dia. Enquanto o
+        # arquivo não existir, a ficha mostra um placeholder no lugar.
+        # O poster é o primeiro quadro do próprio vídeo, em 16:9 — usar o avatar
+        # quadrado aqui fazia o navegador cortar o centro e dar zoom no rosto.
+        # Para gerar o de um vídeo novo:
+        #   ffmpeg -i fra.mp4 -frames:v 1 -vf scale=1280:-2 frame.png
+        #   cwebp -q 82 frame.png -o assets/video/fra-poster.webp
         "video": f"assets/video/{iso.lower()}.mp4",
+        "videoPoster": f"assets/video/{iso.lower()}-poster.webp",
         # os retratos novos entram como .png/.webp; enquanto não existirem, o
         # onerror no <img> cai de volta no .svg antigo e nada quebra
         "avatar": f"assets/avatars/{iso.lower()}.webp",
@@ -1331,7 +1337,7 @@ function setupPersonaVideo(p){
     </div>`;};
   const v=document.createElement('video');
   v.controls=true;v.preload='metadata';v.playsInline=true;
-  v.setAttribute('poster',p.avatar);
+  v.setAttribute('poster',p.videoPoster);
   v.addEventListener('error',soon,true);   // catches the <source> failing too
   const s=document.createElement('source');s.src=p.video;s.type='video/mp4';
   s.addEventListener('error',soon);
