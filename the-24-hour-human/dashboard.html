@@ -240,6 +240,13 @@ html[data-mood="dark"] .aha{box-shadow:inset 0 -.48em 0 rgba(255,195,122,.15)}
 .phalo .avatar{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
  width:112px;height:112px;border-radius:50%;background:#eef1ff;object-fit:cover;
  box-shadow:0 10px 26px -10px rgba(20,26,51,.45)}
+/* hover caption under the ring. Chart.js paints its tooltip inside the canvas,
+   where the portrait covered the middle of it and the 180px canvas clipped the
+   ends. A line we control is never covered and never cut. */
+.phov{min-height:34px;display:flex;align-items:center;justify-content:center;gap:8px;
+ font-size:12.5px;font-weight:600;color:var(--ink);line-height:1.3;padding:0 6px}
+.phov i{width:9px;height:9px;border-radius:2px;flex:0 0 auto}
+.phov.idle{color:var(--muted);font-weight:500;font-style:italic}
 .phalo .hrs{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);
  font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;color:var(--muted);
  background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px 10px}
@@ -375,10 +382,51 @@ html[data-mood="dark"] .pmnum .d.dn{color:#ff8095}
  font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
  padding:5px 13px;border-radius:999px;margin-bottom:11px}
 .matchinfo p{color:var(--muted);font-size:13.5px}
-.qclock{position:relative;width:158px;height:158px;flex:0 0 auto}
+.qbars{flex:1 1 100%;margin-top:4px;padding-top:20px;border-top:1px solid var(--line)}
 .qafter{display:none;margin-top:20px;color:var(--muted);font-size:14.5px;font-style:italic;
  border-left:2px solid var(--accent);padding-left:16px}
 @media(prefers-reduced-motion:reduce){.qresult.show{animation:none}.matchbanner .hearts{animation:none}}
+
+/* ─────────── the 24h bar: a day read left to right ───────────
+   Replaces the doughnuts that were repeating in the quiz, the globe panel and
+   the 2050 section. A ring is fine for one portrait; four identical ones across
+   the page stop carrying information. A bar also reads as a timeline, which is
+   what a day is, and fits a narrow column where a circle does not. */
+.dbwrap{margin-top:6px}
+.dblab{display:flex;justify-content:space-between;gap:10px;font-size:10.5px;
+ letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--muted);margin-bottom:7px}
+.dblab b{color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:0}
+.daybar24{display:flex;height:26px;border-radius:8px;overflow:hidden;
+ box-shadow:inset 0 0 0 1px rgba(255,255,255,.4),0 4px 12px -6px rgba(20,26,51,.4)}
+.daybar24 i{height:100%;transition:width .6s cubic-bezier(.2,.7,.2,1)}
+.dbticks{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);
+ font-variant-numeric:tabular-nums;margin-top:6px}
+.dbkey{display:flex;flex-wrap:wrap;gap:7px 14px;margin-top:12px;font-size:11.5px;color:var(--muted)}
+.dbkey span{display:flex;align-items:center;gap:6px}
+.dbkey i{width:9px;height:9px;border-radius:2px;flex:0 0 auto}
+
+/* ─────────── change chart: today against the projection ───────────
+   Two rings side by side made you eyeball the difference. This states it: the
+   translucent bar is today, the solid one is 2050, and the tail that sticks out
+   is what was gained or lost. */
+.chg{display:flex;flex-direction:column;gap:13px}
+.chgrow{display:grid;grid-template-columns:120px 1fr 96px;gap:14px;align-items:center;font-size:13.5px}
+.chgrow .nm{font-weight:500;color:var(--ink)}
+.chgtrack{position:relative;height:24px;border-radius:7px;background:var(--line);overflow:hidden}
+.chgtrack i{position:absolute;top:0;bottom:0;left:0;border-radius:7px;background:var(--bc)}
+.chgtrack i.now{opacity:.34}
+.chgtrack i.fut{opacity:1;transition:width .7s cubic-bezier(.2,.7,.2,1)}
+.chgval{text-align:right;font-variant-numeric:tabular-nums}
+.chgval b{display:block;font-weight:700;color:var(--ink)}
+.chgval span{font-size:11.5px;font-weight:700}
+.chgval span.up{color:#0f8f7f}.chgval span.dn{color:#d1445c}.chgval span.eq{color:var(--muted)}
+html[data-mood="dark"] .chgval span.up{color:#31d3bd}
+html[data-mood="dark"] .chgval span.dn{color:#ff8095}
+.chglegend{margin-top:16px;font-size:12px;color:var(--muted);display:flex;gap:18px;flex-wrap:wrap}
+.chglegend span{display:flex;align-items:center;gap:7px}
+.chglegend i{width:22px;height:11px;border-radius:3px;background:var(--pca)}
+.chglegend i.faint{opacity:.34}
+@media(max-width:620px){.chgrow{grid-template-columns:96px 1fr 82px;gap:10px;font-size:12.5px}}
 
 /* ───────────────────────── globe ───────────────────────── */
 .mapwrap{display:grid;grid-template-columns:1.85fr 1fr;gap:22px}
@@ -394,7 +442,6 @@ html[data-mood="dark"] .pmnum .d.dn{color:#ff8095}
 .mappanel .hint{color:var(--muted);font-size:14.5px;line-height:1.7}
 .mpflag{font-size:46px;line-height:1}
 .mpname{font-family:var(--display);font-size:23px;font-weight:500;margin-top:6px}
-.mpclock{position:relative;width:176px;height:176px;margin:14px 0}
 .mpstats{width:100%;font-size:12.5px;color:var(--muted)}
 .mpstats div{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line)}
 .mpstats div:last-child{border-bottom:0}
@@ -495,11 +542,6 @@ html[data-mood="dark"] .pmnum .d.dn{color:#ff8095}
 .predkpis .k .n{font-family:var(--display);font-size:30px;font-weight:500;font-variant-numeric:tabular-nums}
 .predkpis .k .l{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
  margin-top:6px;font-weight:600}
-.predclocks{display:flex;align-items:center;justify-content:center;gap:30px;flex-wrap:wrap}
-.clockbox2{position:relative;width:208px;height:208px}
-.clab{text-align:center;font-size:11px;letter-spacing:.18em;text-transform:uppercase;
- color:var(--muted);font-weight:700;margin-bottom:10px}
-.predclocks .arrow{font-size:32px;color:var(--accent)}
 .predtext{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:30px}
 @media(max-width:700px){.predtext{grid-template-columns:1fr}}
 .ptcard{border-radius:var(--r-sm);padding:20px 22px}
@@ -609,8 +651,16 @@ html[data-mood="dark"] .pmnum .d.dn{color:#ff8095}
   <div class="pdetail" id="personaDetail" tabindex="-1" hidden></div>
 </section>
 
+<section class="reveal" id="ch-topics" data-nav="Who does it most">
+  <div class="shead"><span class="chapno">02</span><span class="sh">The first surprise</span><span class="tchip">09:00 &middot; Morning</span></div>
+  <h2>Who does it <em>most?</em></h2>
+  <p class="sub">The same 1,440 minutes, split five ways &mdash; and every one of those slices has a world champion. <span class="aha">Pick a piece of the day</span> to see which countries spend the most of it, and which one sits at the other end. Some rankings are exactly what you would guess. One of them is the first real surprise in this data.</p>
+  <div class="tgrid" id="topicGrid"></div>
+  <div class="trank" id="topicRank"></div>
+</section>
+
 <section class="reveal" id="ch-quiz" data-nav="Your match">
-  <div class="shead"><span class="chapno">02</span><span class="sh">Now your turn</span><span class="tchip">09:00</span></div>
+  <div class="shead"><span class="chapno">03</span><span class="sh">Now your turn</span><span class="tchip">11:00</span></div>
   <h2>Which human <em>are you?</em></h2>
   <p class="sub">Now that you've met them, let's figure out your ideal day. Slide each bar to what feels best for you: give more time to what matters most, and less to what matters least. Think about what motivates you and makes you happiest. Then, <span class="aha">just like Tinder, we'll reveal your perfect match:</span> which of the 35 countries around the world would give you your 'perfect day'. So... who's your match?</p>
   <div class="quiz">
@@ -629,7 +679,7 @@ html[data-mood="dark"] .pmnum .d.dn{color:#ff8095}
       <div class="matchbody">
         <div class="matchface" id="rflag"></div>
         <div class="matchinfo"><h3 id="rname"></h3><div class="matchpct" id="rpct"></div><p id="rdesc"></p></div>
-        <div class="qclock"><canvas id="qclock"></canvas></div>
+        <div class="qbars" id="qbars"></div>
       </div>
     </div>
     <p class="qafter" id="qafter">Your day isn't just yours. Millions of people half a world away wake to almost the same rhythm. Time use is personal, but it's also deeply cultural. Keep that in mind as we zoom out.</p>
@@ -637,7 +687,7 @@ html[data-mood="dark"] .pmnum .d.dn{color:#ff8095}
 </section>
 
 <section class="reveal" id="ch-globe" data-nav="The globe">
-  <div class="shead"><span class="chapno">03</span><span class="sh">Explore all 35</span><span class="tchip">12:00 &middot; Midday</span></div>
+  <div class="shead"><span class="chapno">04</span><span class="sh">Explore all 35</span><span class="tchip">12:00 &middot; Midday</span></div>
   <h2>Where people <em>spend their time</em></h2>
   <p class="sub">So, how's the world out there? Each dot is a country we mapped, <span class="aha">colored from yellow (fewer work hours) to red (more) across the year</span>. Spin it and a pattern shows up: the busy red dots cluster where incomes are lower, while the calmer yellow ones sit among the wealthy. Find the country you're curious about and dive deep: click it to open its 24-hour day. (It's a little sad, but you'll spot a gap over South America. The honest limit of our data.)</p>
   <div class="mapwrap">
@@ -647,14 +697,6 @@ html[data-mood="dark"] .pmnum .d.dn{color:#ff8095}
     </div>
   </div>
   <div class="maplegend"><span>Fewer work hours/yr</span><span class="bar"></span><span>More work hours/yr</span></div>
-</section>
-
-<section class="reveal" id="ch-topics" data-nav="Who does it most">
-  <div class="shead"><span class="chapno">04</span><span class="sh">The first surprise</span><span class="tchip">15:00 &middot; Afternoon</span></div>
-  <h2>Who does it <em>most?</em></h2>
-  <p class="sub">The same 1,440 minutes, split five ways &mdash; and every one of those slices has a world champion. <span class="aha">Pick a piece of the day</span> to see which countries spend the most of it, and which one sits at the other end. Some rankings are exactly what you would guess. One of them is the first real surprise in this data.</p>
-  <div class="tgrid" id="topicGrid"></div>
-  <div class="trank" id="topicRank"></div>
 </section>
 
 </div><!-- /wrap -->
@@ -713,10 +755,10 @@ html[data-mood="dark"] .pmnum .d.dn{color:#ff8095}
       </div>
     </div>
     <div class="predkpis" id="predKpis"></div>
-    <div class="predclocks">
-      <div><div class="clab">Today</div><div class="clockbox2"><canvas id="clockToday"></canvas></div></div>
-      <div class="arrow">&rarr;</div>
-      <div><div class="clab">Projected 2050</div><div class="clockbox2"><canvas id="clock2050"></canvas></div></div>
+    <div class="chg" id="predChange"></div>
+    <div class="chglegend">
+      <span><i class="faint"></i>Today</span>
+      <span><i></i>Projected 2050</span>
     </div>
     <div class="predtext" id="predText"></div>
   </div>
@@ -785,11 +827,31 @@ TT.borderColor='rgba(255,255,255,.15)';TT.borderWidth=1;TT.usePointStyle=true;
 TT.titleFont={family:'"Inter",sans-serif',size:12.5,weight:'700'};
 TT.bodyFont={family:'"Inter",sans-serif',size:12.5};
 
-/* one shared recipe for every 24h ring */
-const ring=(data,cut='68%')=>({type:'doughnut',
+/* the 24h ring, now only the persona portraits. The tooltip is off: it drew
+   inside the canvas, under the portrait, and got clipped by the 180px box.
+   onHover feeds a caption below the ring instead. */
+const ring=(data,cut='68%',onHover=null)=>({type:'doughnut',
   data:{labels:CATS,datasets:[{data,backgroundColor:COL,borderWidth:0,spacing:2,borderRadius:5,hoverOffset:9}]},
-  options:{cutout:cut,plugins:{legend:{display:false},
-    tooltip:{callbacks:{label:c=>` ${c.label}: ${hm(c.parsed)}`}}}}});
+  options:{cutout:cut,onHover:onHover,
+    plugins:{legend:{display:false},tooltip:{enabled:false}}}});
+
+/* a day as a 24h bar. Plain HTML, no Chart.js: lighter, and it reads as the
+   timeline a day actually is. Used where a fourth identical ring would have
+   stopped meaning anything. */
+const dayKey=()=>`<div class="dbkey">${CATS.map((c,i)=>
+  `<span><i style="background:${COL[i]}"></i>${c}</span>`).join('')}</div>`;
+function dayStrip(vals,o){
+  o=o||{};
+  const seg=vals.map((v,i)=>`<i style="width:${(v/24*100).toFixed(2)}%;background:${COL[i]}"
+     title="${CATS[i]}: ${hm(v)}"></i>`).join('');
+  return `<div class="dbwrap">
+    ${o.label?`<div class="dblab"><span>${o.label}</span>${o.right?`<b>${o.right}</b>`:''}</div>`:''}
+    <div class="daybar24" role="img" aria-label="${o.label||'A 24 hour day'}: ${
+      CATS.map((c,i)=>c+' '+hm(vals[i])).join(', ')}">${seg}</div>
+    ${o.ticks?`<div class="dbticks"><span>0h</span><span>6h</span><span>12h</span><span>18h</span><span>24h</span></div>`:''}
+    ${o.key?dayKey():''}
+  </div>`;
+}
 
 /* ── the sky: scroll is the passage of a day ──────────────────────────────────
    Seven keyframes across the page. Each carries a CSS gradient (always drawn)
@@ -807,26 +869,29 @@ const ring=(data,cut='68%')=>({type:'doughnut',
    so the 50/50 blend is on screen for less scroll distance.
 
    Stops are anchored to where each chapter actually sits in the scroll, so an
-   image has fully arrived when its chapter is on screen:
-     0.00 morning    hero + "five lives"      (07:00)
-     0.30 midday     "your match" + globe     (09:00 / 12:00)
-     0.44 afternoon  "who works most"         (15:00)
-     0.53 golden     "the double shift"       (20:00)
-     0.65 sunset     "work vs. free time"     (21:30)
-     0.76 dusk       "working until when"     (22:30)
-     0.86 night      "the day of 2050"        (23:00)
-     1.00 midnight   "the takeaway"           (23:59, the day ends)
+   image has fully arrived when its chapter is on screen. Re-measured after the
+   chapters were reordered (topics moved from 4th to 2nd), which shifted every
+   position below it:
+     0.00 morning    hero + "five lives"        (07:00, chapter at 0.12)
+     0.34 midday     "who does it most" + quiz  (09:00 / 11:00, at 0.27 / 0.36)
+     0.47 afternoon  the globe                  (12:00, at 0.43)
+     0.57 golden     "the double shift"         (20:00, at 0.53)
+     0.66 sunset     "work vs. free time"       (21:30, at 0.65)
+     0.74 dusk       "working until when"       (22:30, at 0.74)
+     0.86 night      "the day of 2050"          (23:00, at 0.82)
+     1.00 midnight   "the takeaway"             (23:59, at 0.97, the day ends)
    The story closes on deep night, matching its own closing line ("when your day
-   ends..."). One single ink flip, to light at p=0.705, between two chapters.
+   ends..."). One single ink flip, to light at p=0.70, which falls between
+   chapters 6 (0.65) and 7 (0.74) so nobody watches text change colour mid-read.
    Gradient stops are sampled from the artwork, so the no-image fallback tracks
    the same arc. */
 const SKY=[
  {p:0.00,img:'01-morning',  dark:false,c:['#e1eae3','#e0ebe6','#cee6eb']},
- {p:0.30,img:'02-midday',   dark:false,c:['#a6d7df','#9fe2ee','#79e2fb']},
- {p:0.44,img:'03-afternoon',dark:false,c:['#b8c9c3','#d0d5bc','#eecf91']},
- {p:0.53,img:'04-golden',   dark:false,c:['#efaf7d','#dca686','#e8b578']},
- {p:0.65,img:'05-sunset',   dark:false,c:['#ac9d8d','#e6a26e','#e99a75']},
- {p:0.76,img:'06-dusk',     dark:true, c:['#4a4373','#75699c','#7b87b5']},
+ {p:0.34,img:'02-midday',   dark:false,c:['#a6d7df','#9fe2ee','#79e2fb']},
+ {p:0.47,img:'03-afternoon',dark:false,c:['#b8c9c3','#d0d5bc','#eecf91']},
+ {p:0.57,img:'04-golden',   dark:false,c:['#efaf7d','#dca686','#e8b578']},
+ {p:0.66,img:'05-sunset',   dark:false,c:['#ac9d8d','#e6a26e','#e99a75']},
+ {p:0.74,img:'06-dusk',     dark:true, c:['#4a4373','#75699c','#7b87b5']},
  {p:0.86,img:'07-night',    dark:true, c:['#36355f','#3e3b6b','#49286f']},
  {p:1.00,img:'08-midnight', dark:true, c:['#222544','#242c4e','#041031']}];
 const SKY_DIR='assets/sky/',SKY_EXT='.webp';
@@ -973,6 +1038,7 @@ D.personas.forEach((p,i)=>{
            alt="Illustrated portrait of ${p.name} from ${p.continent}">
       <span class="hrs">24h</span>
     </div>
+    <div class="phov idle" id="phov${i}">Hover the ring</div>
     <div class="pname">${p.name} <span class="pflag">${p.emoji}</span></div>
     <div class="sig">${p.sig}</div>
     <div class="bio">${p.bio}</div>
@@ -980,7 +1046,15 @@ D.personas.forEach((p,i)=>{
       <div><b>${Math.round(p.wh)}h</b>Work / yr</div></div>
     <div class="phint">Open their day &rarr;</div>`;
   grid.appendChild(el);io.observe(el);
-  new Chart(document.getElementById('clk'+i),ring(p.clock,'70%'));
+  const cap=el.querySelector('#phov'+i),idle='Hover the ring';
+  const setCap=n=>{
+    if(n<0){cap.className='phov idle';cap.textContent=idle;return;}
+    cap.className='phov';
+    cap.innerHTML=`<i style="background:${COL[n]}"></i>${CATS[n]} &middot; ${hm(p.clock[n])}`;
+  };
+  const cv=document.getElementById('clk'+i);
+  new Chart(cv,ring(p.clock,'70%',(ev,els)=>setCap(els.length?els[0].index:-1)));
+  cv.addEventListener('mouseleave',()=>setCap(-1));   // onHover does not fire on leave
 });
 
 /* ── persona detail modal ──
@@ -1110,7 +1184,6 @@ function updTotals(){
 }
 ids.forEach(k=>document.getElementById('q_'+k).addEventListener('input',updTotals));
 updTotals();
-let qc=null;
 document.getElementById('qbtn').addEventListener('click',()=>{
   const q=readQuiz();let v=[q.pca,q.paw,q.upw,q.lei],sum=v.reduce((a,b)=>a+b,0);
   let oth=Math.max(0,24-sum);if(sum>24){const f=24/sum;v=v.map(x=>x*f);oth=0;}
@@ -1124,8 +1197,12 @@ document.getElementById('qbtn').addEventListener('click',()=>{
   document.getElementById('rdesc').innerHTML=`Paid work ${hm(best.paw)}/day &middot; leisure ${hm(best.lei)}/day &middot; retires at ${best.ret.toFixed(0)}.`;
   document.getElementById('qresult').classList.add('show');
   document.getElementById('qafter').style.display='block';
-  if(qc)qc.destroy();
-  qc=new Chart(document.getElementById('qclock'),ring([best.pca,best.paw,best.upw,best.lei,best.oth],'62%'));
+  // two bars instead of one ring: the point of a match is the comparison, and a
+  // ring of the country alone never showed you what you asked for
+  document.getElementById('qbars').innerHTML=
+    dayStrip(user,{label:'Your ideal day',right:'24h'})+
+    dayStrip([best.pca,best.paw,best.upw,best.lei,best.oth],
+           {label:best.country+"'s real day",right:'24h',key:true});
 });
 
 /* ── topic picker: one ranking per slice of the day ──
@@ -1290,16 +1367,28 @@ function project(c,growth){
   const v=[c.pca,paw,upw,lei,c.oth],s=v.reduce((a,b)=>a+b,0);
   return v.map(x=>x*24/s);
 }
-const refT={c:null},refF={c:null};
-function drawClock(id,data,ref){
-  if(ref.c)ref.c.destroy();
-  ref.c=new Chart(document.getElementById(id),ring(data,'62%'));
+/* per-category change: translucent bar is today, solid is the projection, and
+   the tail sticking out is the gain or loss. Two rings made you eyeball it. */
+function drawChange(now,fut){
+  const span=Math.max(...now,...fut)*1.08;
+  document.getElementById('predChange').innerHTML=CATS.map((c,i)=>{
+    const d=Math.round((fut[i]-now[i])*60),sg=d>0?'+':'';
+    const cls=Math.abs(d)<1?'eq':(d>0?'up':'dn');
+    return `<div class="chgrow" style="--bc:${COL[i]}">
+      <span class="nm">${c}</span>
+      <span class="chgtrack">
+        <i class="now" style="width:${(now[i]/span*100).toFixed(1)}%"></i>
+        <i class="fut" style="width:${(fut[i]/span*100).toFixed(1)}%"></i>
+      </span>
+      <span class="chgval"><b>${hm(fut[i])}</b>
+        <span class="${cls}">${cls==='eq'?'no change':sg+d+' min'}</span></span>
+    </div>`;}).join('');
 }
 function renderPred(){
   const c=findC(selC.value),gv=parseInt(document.getElementById('predGrowth').value);
   document.getElementById('predGrowthLbl').textContent='+'+gv+'%';
   const now=[c.pca,c.paw,c.upw,c.lei,c.oth],fut=project(c,gv);
-  drawClock('clockToday',now,refT);drawClock('clock2050',fut,refF);
+  drawChange(now,fut);
   const dLei=Math.round((fut[3]-c.lei)*60),dPaw=Math.round((fut[1]-c.paw)*60),sg=v=>(v>=0?'+':'')+v;
   document.getElementById('predKpis').innerHTML=`
     <div class="k"><div class="n" style="color:#2fd3bd">${hm(fut[3])}</div><div class="l">Leisure/day (${sg(dLei)} min)</div></div>
@@ -1339,11 +1428,11 @@ const whs=D.countries.map(c=>c.wh),whMin=Math.min(...whs),whMax=Math.max(...whs)
 const whColor=v=>{const t=Math.max(0,Math.min(1,(v-whMin)/(whMax-whMin)));
   const a=[255,214,10],b=[214,20,64];
   return `rgb(${a.map((x,i)=>Math.round(x+(b[i]-x)*t)).join(',')})`;};
-let mapClock=null;
+
 function selectCountry(c){
   const p=document.getElementById('mapPanel');
   p.innerHTML=`<div class="mpflag">${c.flag}</div><div class="mpname">${c.country}</div>
-    <div class="mpclock"><canvas id="mpClock"></canvas></div>
+    ${dayStrip([c.pca,c.paw,c.upw,c.lei,c.oth],{label:'Their 24 hours',ticks:true})}
     <div class="mpstats">
       <div><span>Paid work</span><b>${hm(c.paw)}/day</b></div>
       <div><span>Unpaid work</span><b>${hm(c.upw)}/day</b></div>
@@ -1352,8 +1441,6 @@ function selectCountry(c){
       <div><span>Work per year</span><b>${Math.round(c.wh)}h</b></div>
       <div><span>Retires (men)</span><b>${c.ret.toFixed(0)} yrs</b></div>
     </div>`;
-  if(mapClock)mapClock.destroy();
-  mapClock=new Chart(document.getElementById('mpClock'),ring([c.pca,c.paw,c.upw,c.lei,c.oth],'62%'));
 }
 const gEl=document.getElementById('globe');
 if(typeof Globe==='undefined'){
