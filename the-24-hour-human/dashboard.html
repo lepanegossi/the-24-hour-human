@@ -401,6 +401,13 @@ html[data-mood="dark"] .pmnum .d.dn{color:#ff8095}
 .daybar24 i{height:100%;transition:width .6s cubic-bezier(.2,.7,.2,1)}
 .dbticks{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);
  font-variant-numeric:tabular-nums;margin-top:6px}
+/* hover readout: the bar showed proportion but never the value, so you could see
+   one block was bigger without knowing what share of the 24h it was */
+.dbhov{min-height:22px;margin-top:9px;display:flex;align-items:center;gap:8px;
+ font-size:12px;font-weight:600;color:var(--ink)}
+.dbhov i{width:9px;height:9px;border-radius:2px;flex:0 0 auto}
+.dbhov.idle{color:var(--muted);font-weight:500;font-style:italic}
+.daybar24 i{cursor:default}
 .dbkey{display:flex;flex-wrap:wrap;gap:7px 14px;margin-top:12px;font-size:11.5px;color:var(--muted)}
 .dbkey span{display:flex;align-items:center;gap:6px}
 .dbkey i{width:9px;height:9px;border-radius:2px;flex:0 0 auto}
@@ -470,8 +477,7 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
 .tcard b{position:absolute;left:0;right:0;bottom:0;z-index:1;padding:18px 18px 20px;
  font-family:var(--display);font-size:24px;font-weight:600;line-height:1.15;
  text-align:center;text-shadow:0 2px 14px rgba(0,0,0,.65)}
-.tcard i{position:absolute;top:16px;left:18px;z-index:1;font-style:normal;font-size:28px;
- filter:drop-shadow(0 2px 8px rgba(0,0,0,.55))}
+
 .tcard.on{outline:3px solid var(--accent);outline-offset:3px}
 .tcard.on::after{background:linear-gradient(180deg,rgba(10,14,36,0) 26%,rgba(10,14,36,.86))}
 .trank{margin-top:28px}
@@ -840,18 +846,33 @@ const ring=(data,cut='68%',onHover=null)=>({type:'doughnut',
    stopped meaning anything. */
 const dayKey=()=>`<div class="dbkey">${CATS.map((c,i)=>
   `<span><i style="background:${COL[i]}"></i>${c}</span>`).join('')}</div>`;
+const DB_IDLE='Hover a block for its hours';
 function dayStrip(vals,o){
   o=o||{};
   const seg=vals.map((v,i)=>`<i style="width:${(v/24*100).toFixed(2)}%;background:${COL[i]}"
-     title="${CATS[i]}: ${hm(v)}"></i>`).join('');
+     data-c="${i}" data-v="${hm(v)}" data-p="${(v/24*100).toFixed(1)}"></i>`).join('');
   return `<div class="dbwrap">
     ${o.label?`<div class="dblab"><span>${o.label}</span>${o.right?`<b>${o.right}</b>`:''}</div>`:''}
     <div class="daybar24" role="img" aria-label="${o.label||'A 24 hour day'}: ${
       CATS.map((c,i)=>c+' '+hm(vals[i])).join(', ')}">${seg}</div>
     ${o.ticks?`<div class="dbticks"><span>0h</span><span>6h</span><span>12h</span><span>18h</span><span>24h</span></div>`:''}
+    <div class="dbhov idle">${DB_IDLE}</div>
     ${o.key?dayKey():''}
   </div>`;
 }
+/* delegated, because the bars are rebuilt on every quiz match, country click and
+   growth-slider move */
+function dbCap(e,on){
+  const seg=e.target.closest('.daybar24 i');if(!seg)return;
+  const cap=seg.closest('.dbwrap').querySelector('.dbhov');if(!cap)return;
+  if(!on){cap.className='dbhov idle';cap.textContent=DB_IDLE;return;}
+  const i=+seg.dataset.c;
+  cap.className='dbhov';
+  cap.innerHTML=`<i style="background:${COL[i]}"></i>${CATS[i]}
+    &middot; <b>${seg.dataset.v}</b> &middot; ${seg.dataset.p}% of the day`;
+}
+document.addEventListener('mouseover',e=>dbCap(e,true));
+document.addEventListener('mouseout',e=>dbCap(e,false));
 
 /* ── the sky: scroll is the passage of a day ──────────────────────────────────
    Seven keyframes across the page. Each carries a CSS gradient (always drawn)
@@ -1209,33 +1230,33 @@ document.getElementById('qbtn').addEventListener('click',()=>{
    Artwork goes in assets/topics/<img>.webp (4:3). Until a file exists the
    card falls back to its gradient, so nothing looks broken. */
 const TOPICS=[
-  {k:'pca',ic:'&#128564;',img:'personal-care',col:COL[0],unit:'h',
+  {k:'pca',img:'personal-care',col:COL[0],unit:'h',
    name:'Sleep &amp; self-care',
    what:'Sleeping, eating, washing, getting ready. Not pure sleep &mdash; the data does not separate it.',
    fb:'linear-gradient(150deg,#5a67d8,#8b5cf6)'},
-  {k:'paw',ic:'&#128188;',img:'paid-work',col:COL[1],unit:'h',
+  {k:'paw',img:'paid-work',col:COL[1],unit:'h',
    name:'Paid work',
    what:'Time on the job or studying, per day, averaged across the week.',
    fb:'linear-gradient(150deg,#e04b5f,#c2551a)'},
   // "Housework" reads better but the OECD category also covers caring for
   // children and elders, which is the half the double-shift chapter turns on.
   // "Home & care" keeps both without going dry.
-  {k:'upw',ic:'&#127968;',img:'housework',col:COL[2],unit:'h',
+  {k:'upw',img:'housework',col:COL[2],unit:'h',
    name:'Home &amp; care',
    what:'Cooking, cleaning, raising children, caring for elders. The shift no payslip counts.',
    fb:'linear-gradient(150deg,#f08a24,#e0459b)'},
-  {k:'lei',ic:'&#127916;',img:'leisure',col:COL[3],unit:'h',
+  {k:'lei',img:'leisure',col:COL[3],unit:'h',
    name:'Leisure',
    what:'Everything you do because you want to: friends, sport, screens, doing nothing.',
    fb:'linear-gradient(150deg,#0fa598,#4f5bd5)'},
-  {k:'oth',ic:'&#128652;',img:'getting-around',col:COL[4],unit:'h',
+  {k:'oth',img:'getting-around',col:COL[4],unit:'h',
    name:'Getting around',
    what:'Commuting and everything the survey could not file anywhere else.',
    fb:'linear-gradient(150deg,#7b8398,#4a5170)'},
   // "The whole year" named a unit of time while the other five name an activity,
   // so it read as an odd one out. This names the thing and the timeframe, and the
   // point is telling it apart from the daily "Paid work" card.
-  {k:'wh',ic:'&#128197;',img:'work-year',col:'#8b5cf6',unit:'H',
+  {k:'wh',img:'work-year',col:'#8b5cf6',unit:'H',
    name:'A year of work',
    what:'Not a day but a year: hours worked per worker, all twelve months of it.',
    fb:'linear-gradient(150deg,#8b5cf6,#e0459b)'},
@@ -1246,7 +1267,7 @@ const tgrid=document.getElementById('topicGrid'),trank=document.getElementById('
 tgrid.innerHTML=TOPICS.map((t,i)=>`<button class="tcard" type="button" data-i="${i}"
    style="--img:url('assets/topics/${t.img}.webp');--fb:${t.fb}"
    aria-label="Ranking for ${t.name.replace(/&amp;/g,'and')}">
-   <i>${t.ic}</i><b>${t.name}</b></button>`).join('');
+   <b>${t.name}</b></button>`).join('');
 
 function showTopic(i){
   const t=TOPICS[i];
