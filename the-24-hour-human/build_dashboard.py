@@ -205,6 +205,15 @@ def build_trivia():
 
 TRIVIA = build_trivia()
 
+# ── manchete do hero ─────────────────────────────────────────────────────────
+# O hero convidava a explorar sem afirmar nada, e o quarto número era "2 gêneros
+# comparados", que não informa. A tese do narrative.md sobe para cá, com o número
+# mais forte do dataset no lugar do placeholder.
+_worst_gap = max(gaps, key=lambda x: x["gap"])
+HERO_GAP = _hm(_worst_gap["gap"])
+HERO_GAP_COUNTRY = _worst_gap["country"]
+print(f"Hero: maior gap de trabalho nao-pago = {HERO_GAP} ({HERO_GAP_COUNTRY})")
+
 # ── work vs. free time ───────────────────────────────────────────────────────
 # O eixo X era horas/ano, que contra lazer/dia dá r = -0.47 (R² 0.22): o texto
 # afirmava uma lei que o dado sustenta fracamente, e comparava ano com dia.
@@ -448,10 +457,10 @@ body,.panel,.quiz,.pcard,.legend,.mappanel,.ai,.note,.pollopt,.predkpis .k,
 CSS_TYPE = r"""
 /* ─────────────────────────────── hero ─────────────────────────────── */
 .hero{min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;
- text-align:center;position:relative;padding:84px 0 40px}
+ text-align:center;position:relative;padding:56px 0 28px}
 /* a real, legible clock on a frosted disc — the old version was a faint ring
    behind the title and just read as scattered dashes over the clouds */
-.heroclock{width:152px;height:152px;margin:0 auto 24px;border-radius:50%;flex:0 0 auto;
+.heroclock{width:112px;height:112px;margin:0 auto 16px;border-radius:50%;flex:0 0 auto;
  background:rgba(255,255,255,.5);backdrop-filter:blur(6px) saturate(1.15);
  box-shadow:0 0 0 1px rgba(255,255,255,.8),0 20px 44px -20px rgba(20,26,51,.45),
   inset 0 1px 0 rgba(255,255,255,.9)}
@@ -465,20 +474,30 @@ CSS_TYPE = r"""
  font-weight:700;margin-bottom:18px}
 /* heavier weight and a darker gradient: at 116px the old 300 weight was hairline,
    and the warm end (#f08a24) had almost no contrast against a pale sky */
-.hero h1{font-family:var(--display);font-weight:600;font-size:clamp(46px,9.6vw,116px);
+.hero h1{font-family:var(--display);font-weight:600;font-size:clamp(44px,9vw,104px);
  line-height:.92;letter-spacing:-.03em;font-variation-settings:"SOFT" 24,"WONK" 1;
  background:linear-gradient(104deg,#232c5e 0%,#3f4bc4 28%,#8b3fa8 54%,#b32f57 78%,#c2551a 100%);
  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
  padding-bottom:.06em;filter:drop-shadow(0 3px 12px rgba(20,26,51,.2))}
-.hero .lead{font-size:clamp(16px,1.6vw,19.5px);color:var(--muted);max-width:66ch;margin:22px auto 0}
+/* the thesis, stated instead of implied. The hero used to only invite you to
+   explore, so a judge skimming never learned what the piece argues. */
+.hero .thesis{font-family:var(--display);font-weight:500;font-style:italic;
+ font-size:clamp(19px,2.5vw,29px);line-height:1.32;color:var(--ink);max-width:26ch;
+ margin:18px auto 0;position:relative;padding-top:18px}
+.hero .thesis::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);
+ width:64px;height:2px;border-radius:2px;
+ background:linear-gradient(90deg,var(--pca),var(--paw),var(--upw),var(--lei))}
+.hero .lead{font-size:clamp(14.5px,1.4vw,17px);color:var(--muted);max-width:62ch;margin:14px auto 0}
 .hero .lead b{color:var(--ink);font-weight:600}
+.stat .l br{display:none}
+@media(min-width:700px){.stat .l br{display:inline}}
 
 /* the stat rail needs a real surface: hairline rules alone vanished on the clouds */
-.stats{display:flex;flex-wrap:wrap;justify-content:center;margin-top:46px;overflow:hidden;
+.stats{display:flex;flex-wrap:wrap;justify-content:center;margin-top:28px;overflow:hidden;
  background:rgba(255,255,255,.55);backdrop-filter:blur(9px) saturate(1.1);
  border:1px solid rgba(255,255,255,.8);border-radius:var(--r);
  box-shadow:0 22px 52px -26px rgba(20,26,51,.42)}
-.stat{padding:22px 34px;min-width:168px;position:relative}
+.stat{padding:16px 30px;min-width:158px;position:relative}
 .stat+.stat::before{content:"";position:absolute;left:0;top:20%;bottom:20%;width:1px;
  background:linear-gradient(180deg,transparent,rgba(20,26,51,.18),transparent)}
 .stat .n{font-family:var(--display);font-weight:600;font-size:clamp(32px,4.2vw,46px);line-height:1;
@@ -490,12 +509,32 @@ html[data-mood="dark"] .stats,html[data-mood="dark"] .heroclock{
 html[data-mood="dark"] .stat .l{color:var(--muted)}
 .stat .ki{width:22px;height:22px;margin-bottom:12px;opacity:.7;fill:none;
  stroke:var(--ac,var(--pca));stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.scrollcue{margin-top:54px;display:flex;flex-direction:column;align-items:center;gap:10px;
+.scrollcue{margin-top:26px;display:flex;flex-direction:column;align-items:center;gap:10px;
  font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:600}
-.scrollcue i{width:1px;height:44px;background:linear-gradient(180deg,var(--muted),transparent);
+.scrollcue i{width:1px;height:30px;background:linear-gradient(180deg,var(--muted),transparent);
  animation:drop 2.4s ease-in-out infinite}
 @keyframes drop{0%,100%{opacity:.25;transform:scaleY(.55)}50%{opacity:1;transform:scaleY(1)}}
 @media(prefers-reduced-motion:reduce){.scrollcue i{animation:none}}
+
+/* The hero's content height is fixed, so min-height:100svh alone does not stop it
+   overflowing a short laptop screen and pushing the stats below the fold. These
+   trim by viewport HEIGHT, which is the dimension that actually runs out. */
+@media(max-height:930px){
+ .hero{padding:36px 0 18px}
+ .heroclock{width:84px;height:84px;margin-bottom:12px}
+ .hero h1{font-size:clamp(40px,8vw,86px)}
+ .hero .thesis{font-size:clamp(17px,2.1vw,24px);margin-top:12px;padding-top:12px}
+ .hero .lead{font-size:15.5px;margin-top:10px}
+ .stats{margin-top:18px}
+ .stat{padding:12px 26px}
+ .scrollcue{margin-top:16px}
+ .scrollcue i{height:22px}
+}
+/* below this the clock is the one element the hero can lose without losing meaning */
+@media(max-height:680px){
+ .heroclock{display:none}
+ .hero .lead{display:none}
+}
 
 /* ─────────────────────── section headers ─────────────────────── */
 .shead{display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin-bottom:6px}
@@ -521,6 +560,23 @@ html[data-mood="dark"] .aha{box-shadow:inset 0 -.48em 0 rgba(255,195,122,.15)}
  box-shadow:var(--shadow);backdrop-filter:blur(8px)}
 .note{margin-top:72px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:22px;line-height:1.75}
 .note b{color:var(--ink);font-weight:600}
+/* sources were named in prose but not linked: the whole page had one <a>, so a
+   reader who wanted to check a figure had nowhere to click */
+.srcs{margin-top:76px;border-top:1px solid var(--line);padding-top:30px}
+.srcgrid{display:grid;grid-template-columns:1fr 1fr;gap:34px}
+@media(max-width:760px){.srcgrid{grid-template-columns:1fr;gap:26px}}
+.srcs h4{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);
+ font-weight:700;margin-bottom:14px}
+.srcs ul{list-style:none;display:flex;flex-direction:column;gap:11px}
+.srcs li{font-size:13px;color:var(--muted);line-height:1.6;padding-left:14px;position:relative}
+.srcs li::before{content:"";position:absolute;left:0;top:.62em;width:5px;height:5px;
+ border-radius:50%;background:var(--accent);opacity:.55}
+.srcs a{color:var(--accent);font-weight:600;text-decoration:underline;
+ text-decoration-thickness:1px;text-underline-offset:2px}
+.srcs a:hover{text-decoration-thickness:2px}
+.srcs .fine{margin-top:26px;padding-top:20px;border-top:1px solid var(--line);
+ font-size:12px;color:var(--muted);line-height:1.7}
+.srcs .fine b{color:var(--ink);font-weight:600}
 .ai{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:28px;box-shadow:var(--shadow)}
 .ai ul{margin:6px 0 0 20px;color:var(--muted);font-size:14.5px}
 .ai li{margin:8px 0}
@@ -972,7 +1028,8 @@ BODY = r"""
   </div>
   <div class="kicker">An interactive data story &middot; VizCon 2026</div>
   <h1>The 24-Hour Human</h1>
-  <p class="lead">What can you do in 24 hours? And what does the rest of the world do with theirs? Discover how many hours we work, how much time we keep for leisure, and how the place you live shapes what your day looks like. All inside the same <b>1,440 minutes</b> each of us is given, every single day.</p>
+  <p class="thesis">The fairest thing the world hands out,<br>and the most unequal thing we do with it.</p>
+  <p class="lead">Everyone alive gets the same <b>1,440 minutes</b> tomorrow morning. Where you were born quietly rewrites how you spend them &mdash; how long you work, how much you rest, who carries the work nobody pays for. Follow the day and watch it happen.</p>
   <div class="stats">
     <div class="stat" style="--ac:#f08a24">
       <svg class="ki" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 1.8"/></svg>
@@ -985,7 +1042,8 @@ BODY = r"""
       <div class="n" data-target="5">0</div><div class="l">Continents</div></div>
     <div class="stat" style="--ac:#e0459b">
       <svg class="ki" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><circle cx="16.5" cy="9" r="2.6"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><path d="M14.6 19c.2-2.2 1.8-3.7 4-3.7s3.8 1.5 3.9 3.7"/></svg>
-      <div class="n" data-target="2">0</div><div class="l">Genders compared</div></div>
+      <div class="n">__HERO_GAP__</div>
+      <div class="l">Extra unpaid work a day,<br>for women in __HERO_GAP_COUNTRY__</div></div>
   </div>
   <div class="scrollcue">Scroll to walk through the day<i></i></div>
 </header>
@@ -1166,13 +1224,47 @@ BODY = r"""
   </div>
 </section>
 
-<p class="note">
-  <b>Sources:</b> OECD Time Use Database &middot; World Bank (GDP per capita, PPP) &middot; Our World in Data.
-  All public &amp; free. <b>Method:</b> five activity categories sum to 24h; "personal care" includes sleep, meals
-  and hygiene (not separable in this data); reference years vary by country. <b>Coverage:</b> 35 OECD/partner
-  countries (no South American country available in the dataset). <b>Accessibility:</b> keyboard skip link,
-  color legend with labels, live-updating quiz result. <b>VizCon 2026</b> &middot; "How the world lives, thrives, and connects".
-</p>
+<footer class="srcs reveal">
+  <div class="srcgrid">
+    <div>
+      <h4>Where the data comes from</h4>
+      <ul>
+        <li><a href="https://www.oecd.org/en/data/datasets/time-use-database.html"
+          target="_blank" rel="noopener">OECD Time Use Database</a> &mdash; the five categories that
+          make up the day, by sex, ages 15&ndash;64, across 35 countries. Minutes per day.</li>
+        <li><a href="https://data.worldbank.org/indicator/NY.GDP.PCAP.PP.CD"
+          target="_blank" rel="noopener">World Bank</a> &mdash; GDP per capita, PPP
+          (indicator <code>NY.GDP.PCAP.PP.CD</code>), used as the income measure.</li>
+        <li><a href="https://ourworldindata.org/time-use" target="_blank" rel="noopener">Our World
+          in Data</a> &mdash; life satisfaction (Cantril ladder), annual working hours, average
+          effective retirement age, and leisure by sex.</li>
+      </ul>
+    </div>
+    <div>
+      <h4>What this data can and cannot say</h4>
+      <ul>
+        <li>The five categories sum to 24 hours, so every chart here is a share of one real day.</li>
+        <li><b>Sleep is not separable.</b> It sits inside personal care together with meals and
+          hygiene, which is why we never claim a sleep figure.</li>
+        <li><b>Commuting is not its own category.</b> It falls under "getting around", with
+          whatever else the surveys could not place.</li>
+        <li><b>Reference years differ by country</b>, each being the most recent available. Treat
+          this as a snapshot, not a time series &mdash; it cannot show change over time.</li>
+        <li><b>Coverage is 35 OECD and partner countries.</b> No South American country is in the
+          time-use database, which is why the map has a hole over the continent.</li>
+        <li>The 2050 screen is an <b>illustrative model</b>, not a forecast: it reads the
+          relationship between income and time across countries and applies it to one of them.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="fine">
+    <b>Attribution:</b> World Bank and Our World in Data are open data under CC BY. OECD material is
+    used with attribution. <b>Accessibility:</b> every chart carries a text alternative, the three
+    data-heavy ones also a hidden table of figures; colour is never the only cue; contrast was
+    measured against WCAG AA; the globe can be browsed from the keyboard; motion respects
+    <i>prefers-reduced-motion</i>. <b>VizCon 2026</b> &middot; "How the world lives, thrives, and connects".
+  </p>
+</footer>
 
 </div><!-- /wrap -->
 """
@@ -1405,10 +1497,13 @@ const cio=new IntersectionObserver(es=>es.forEach(e=>{
   const el=e.target,t=+el.dataset.target;
   if(reduce){el.textContent=t.toLocaleString('en-US');return;}
   const dur=1400,st=performance.now();
-  (function step(now){const p=Math.min(1,(now-st)/dur);
+  // clamp both ends: if a frame timestamp ever arrives before st the easing goes
+  // negative and the counter renders "-2,156" instead of counting up
+  (function step(now){const p=Math.min(1,Math.max(0,(now-st)/dur));
     el.textContent=Math.round(t*(1-Math.pow(1-p,3))).toLocaleString('en-US');
     if(p<1)requestAnimationFrame(step);})(st);}),{threshold:.6});
-document.querySelectorAll('.stat .n').forEach(el=>cio.observe(el));
+// only the numeric stats count up; the gender-gap one is a formatted string
+document.querySelectorAll('.stat .n[data-target]').forEach(el=>cio.observe(el));
 
 if(reduce){const r=document.querySelector('.heroclock svg');if(r&&r.pauseAnimations)r.pauseAnimations();}
 
@@ -2014,7 +2109,7 @@ def check_assets(html):
             print(f"   - {m}")
 
 
-FINAL = HTML.replace("__GRAIN__", GRAIN).replace("__TICKS__", CLOCK_TICKS).replace("__DATA__", DATA)
+FINAL = HTML.replace("__GRAIN__", GRAIN).replace("__TICKS__", CLOCK_TICKS).replace("__HERO_GAP__", HERO_GAP).replace("__HERO_GAP_COUNTRY__", HERO_GAP_COUNTRY).replace("__DATA__", DATA)
 check_assets(FINAL)
 OUT.write_text(FINAL, encoding="utf-8")
 print(f"OK -> {OUT}  ({len(countries)} countries, {len(gender)} gender bars, {len(personas)} personas)")
