@@ -618,13 +618,15 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
 .bub .bvl{font-family:var(--display);font-size:16px;font-weight:500;color:var(--ringc,var(--paw));
  font-variant-numeric:tabular-nums}
 
-/* ──────────────── the double shift: one image, two beats ────────────────
-   The climax carried the heaviest text on the page and two bar charts. The scene
-   is a block of flats at night with one kitchen light still on: the second shift
+/* ──────────────── the closing image ────────────────
+   A block of flats at night with one kitchen light still on: the unpaid shift
    without reducing anyone to a person with a broom. Measured luminance 4.4, so it
-   sits inside the night band instead of punching a hole in it. */
-.shiftimg{position:relative;border-radius:var(--r);overflow:hidden;margin-bottom:24px;
+   sits inside the night band the page ends on instead of punching a hole in it.
+   It comes after the closing question rather than inside the double-shift chapter,
+   so the last thing on the page is an image and not a paragraph. */
+.shiftimg{position:relative;border-radius:var(--r);overflow:hidden;
  box-shadow:0 24px 60px -30px rgba(0,0,0,.8)}
+.endimg{margin-top:34px}
 .shiftimg img{display:block;width:100%;height:auto}
 .shiftimg::after{content:"";position:absolute;inset:auto 0 0 0;height:38%;
  background:linear-gradient(180deg,transparent,rgba(10,14,36,.72))}
@@ -929,10 +931,6 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
   <h2>The <em>double shift</em></h2>
   <p class="sub">The double shift, and one stubborn question: why is it almost always women? There's a second shift, the invisible one: cooking, cleaning, raising children, caring for elders. It never shows on a payslip, it sits outside policy indicators, and it stays out of the conversation. Around the world it lands overwhelmingly on women. <span class="aha">In India, women do about five more hours of unpaid work every single day than men.</span> Turkey, Portugal and Mexico aren't far behind, while only the Nordics come close to sharing it evenly. And the penalty is double: those same women also get less time to rest. In Portugal and Italy, men enjoy almost an hour and a half more leisure every single day. Calling women strong and empowered doesn't erase those extra hours. This is the part of the day the economy never counts, the part that shapes millions of lives most, and it's long past time we talked about it as a society.</p>
   </div>
-  <figure class="shiftimg">
-    <img src="assets/img/second-shift.webp" alt="A block of flats at night, nearly every window dark, with one kitchen window still lit." loading="lazy">
-    <figcaption class="shiftcap">Long after the paid day ends, somewhere a light is still on. <b>This is the shift no payslip counts.</b></figcaption>
-  </figure>
   <div class="twinwrap" id="twinWrap">
     <div class="panel st" style="--i:0"><div class="tcap">&#127968; Unpaid work / day <span>women do more</span></div><div class="chartbox twin"><canvas id="genderChart"></canvas></div></div>
     <div class="panel st" style="--i:7"><div class="tcap">&#128715; Leisure / day <span>men get more</span></div><div class="chartbox twin"><canvas id="leisureChart"></canvas></div></div>
@@ -1034,6 +1032,12 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
   </div>
   <div class="acards" id="actionCards"></div>
   <div class="panel closer" id="closer"></div>
+  <!-- last thing on the page before the back matter: the question is asked in
+       text, and then the picture holds the silence after it -->
+  <figure class="shiftimg endimg">
+    <img src="assets/img/second-shift.webp" alt="A block of flats at night, nearly every window dark, with one kitchen window still lit." loading="lazy">
+    <figcaption class="shiftcap">Somewhere a light is still on, and the count has already started over. <b>Your next 1,440 minutes began while you were reading this.</b></figcaption>
+  </figure>
 </section>
 
 <section class="reveal" id="ch-made">
