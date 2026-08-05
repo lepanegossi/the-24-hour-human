@@ -1430,6 +1430,10 @@ const TOPICS=[
    name:'Getting around',
    what:'Commuting and everything the survey could not file anywhere else.',
    fb:'linear-gradient(150deg,#7b8398,#4a5170)'},
+  {k:'wh',ic:'&#128197;',img:'work-year',col:'#8b5cf6',unit:'H',
+   name:'The whole year',
+   what:'Not a day but a year: hours worked per worker, all twelve months of it.',
+   fb:'linear-gradient(150deg,#8b5cf6,#e0459b)'},
 ];
 const heat=t=>mix('#f0a824','#d61440',Math.max(0,Math.min(1,t)));
 const fmt=(v,unit)=>unit==='h'?hm(v):Math.round(v)+'h/yr';
@@ -1466,7 +1470,9 @@ function showTopic(i){
         <b>${t.unit==='h'?hm(hi-lo):Math.round(hi-lo)+'h'}</b> less than
         ${sorted[0].country}.${t.k==='paw'?` And here is the surprise: this ranking flips the
         usual assumption. The countries at the top are not the richest ones &mdash; wealth is
-        what lets a nation ease off the clock.`:''}</p>
+        what lets a nation ease off the clock.`:''}${t.k==='wh'?` Stretched over a year the
+        gap stops being abstract: that is nearly <b>${Math.round((hi-lo)/8)} working days</b>
+        of difference between the top and the bottom of this list.`:''}</p>
     </div>`;
   void trank.offsetHeight;trank.classList.add('go');
 }
