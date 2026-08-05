@@ -630,7 +630,6 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
    so the last thing on the page is an image and not a paragraph. */
 .shiftimg{position:relative;border-radius:var(--r);overflow:hidden;
  box-shadow:0 24px 60px -30px rgba(0,0,0,.8)}
-.endimg{margin-top:34px}
 .shiftimg img{display:block;width:100%;height:auto}
 .shiftimg::after{content:"";position:absolute;inset:auto 0 0 0;height:38%;
  background:linear-gradient(180deg,transparent,rgba(10,14,36,.72))}
@@ -638,6 +637,31 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
  font-size:13.5px;line-height:1.5;color:#e8ebff;text-shadow:0 2px 10px rgba(0,0,0,.7)}
 .shiftcap b{color:#fff;font-weight:700}
 @media(max-width:640px){.shiftcap{font-size:12.5px;padding:14px 16px}}
+
+/* The final question used to live in the closing panel at display size and the
+   picture underneath only carried a footnote, which put the crescendo above the
+   last thing on the page. It moves onto the image, so the type has to grow and
+   the scrim has to grow with it. The bottom of this artwork tops out at rgb(67,
+   98, 143), so white sits at 15:1 even before the scrim deepens. */
+.endimg{margin-top:34px}
+.endimg::after{height:64%;background:linear-gradient(180deg,transparent,
+ rgba(10,14,36,.5) 34%,rgba(10,14,36,.93))}
+.endimg .shiftcap{padding:32px 36px 34px;text-align:center}
+.endimg .ecl{display:block;font-size:14.5px;line-height:1.55;color:#cfd6ff}
+.endimg .ecq{display:block;margin-top:12px;font-family:var(--display);
+ font-size:clamp(25px,3.5vw,40px);font-weight:400;font-style:italic;line-height:1.16;
+ letter-spacing:-.01em;color:#fff}
+.endimg .ecq b{display:block;font-style:normal;font-weight:600}
+/* On a narrow screen the artwork is only ~260px tall and the caption wants 147 of
+   them, which leaves the picture as a strip behind text. Below 700px the caption
+   drops out of the image and becomes a band underneath it, so both get their
+   full size. */
+@media(max-width:700px){
+ .endimg::after{display:none}
+ .endimg .shiftcap{position:static;padding:22px 20px 24px;
+  background:linear-gradient(180deg,rgba(10,14,36,.94),rgba(10,14,36,.99))}
+ .endimg .ecl{font-size:13px}
+ .endimg .ecq{margin-top:10px}}
 
 /* ──────────────── the twin charts (double shift) ──────────────── */
 .twinwrap{display:grid;grid-template-columns:1fr 1fr;gap:22px}
@@ -664,14 +688,9 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
 .acard b{color:var(--ink);font-weight:700}
 .acard .big{font-family:var(--display);font-size:clamp(34px,4vw,46px);font-weight:600;
  line-height:1;color:var(--bc);font-variant-numeric:tabular-nums;margin:4px 0 12px}
+/* the panel now ends on the analysis; the question moved to the image below it */
 .closer{margin-top:24px;text-align:center;padding:38px 30px}
 .closer p{font-size:16px;color:var(--muted);line-height:1.72;max-width:66ch;margin:0 auto}
-.closer .q{font-family:var(--display);font-size:clamp(26px,3.6vw,40px);font-weight:500;
- font-style:italic;line-height:1.2;color:var(--ink);margin-top:22px;padding-top:22px;
- border-top:1px solid var(--line);display:inline-block}
-.closer .q b{font-style:normal;font-weight:600;
- background:linear-gradient(96deg,var(--pca),var(--lei) 45%,var(--upw));
- -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 
 /* ──────────── work vs. free time: flags on a plot ────────────
    Was a Chart.js scatter of 35 anonymous dots: you could not find the people the
@@ -1040,10 +1059,10 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
        text, and then the picture holds the silence after it -->
   <figure class="shiftimg endimg">
     <img src="assets/img/second-shift.webp" alt="A block of flats at night, nearly every window dark, with one kitchen window still lit." loading="lazy">
-    <!-- deliberately the hero thesis said back in the language of the picture:
-         "the fairest thing the world hands out, and the most unequal thing we do
-         with it". Closing the loop, not repeating the count stated just above. -->
-    <figcaption class="shiftcap">The hours arrive the same for everyone behind these windows. <b>What happens to them never does.</b></figcaption>
+    <figcaption class="shiftcap">
+      <span class="ecl">Sooner or later that light goes out, the street goes quiet, and the whole day starts over from zero.</span>
+      <span class="ecq">1,440 minutes, all over again. <b>What will you do with yours?</b></span>
+    </figcaption>
   </figure>
 </section>
 
@@ -1987,8 +2006,8 @@ sliderText();
     <p>Across these ${D.countries.length} countries, how long a day at work runs explains about
       <b>${Math.round(W.r*W.r*100)}%</b> of the difference in free time, and income tracks the
       length of the working year at <b>r = ${W.rIncomeHours.toFixed(2)}</b>. The day responds to
-      how a country organises itself. It has been responding all along.</p>
-    <p class="q">1,440 minutes.<br><b>How will you spend yours?</b></p>`;
+      how a country organises itself. It has been responding all along.</p>`;
+  // the question that used to sit here now closes the page over the image below
 })();
 
 /* ── interactive globe ── */
