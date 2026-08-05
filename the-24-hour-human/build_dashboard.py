@@ -379,14 +379,17 @@ TOOLS = [
     ("github",     "GitHub Pages",  "hosting",          "#2b3138", "#e2e7ff"),
 ]
 
-# Roles are taken from what each person actually authored in the repo history,
-# not assigned by hand, and ordered the way the work happened.
+# Ordered the way the work happened: the data first, then the story built on it,
+# then the redesign of how it looks.
 CREDITS = [
-    ("Nathalli Domingos", "ND", "Data sourcing, cleaning and the schema behind every number",
+    ("Nathalli Domingos", "ND",
+     "Data sourcing, cleaning and the schema behind every number, and the persona videos",
      "var(--pca)", "var(--accent)"),
-    ("Camila Leite", "CL", "Narrative and the first build of the dashboard",
+    ("Camila Leite", "CL",
+     "The narrative, the first version of the dashboard and the views it is built from",
      "var(--hot)", "var(--warm)"),
-    ("Leticia Toniolo", "LT", "Visual redesign, interactions and accessibility",
+    ("Leticia Toniolo", "LT",
+     "Visual redesign, interactions, accessibility and the generated illustrations",
      "var(--lei)", "var(--pca)"),
 ]
 
@@ -1459,7 +1462,7 @@ BODY = r"""
   <div class="sintro">
     <div class="shead"><span class="sh">Behind the page</span></div>
     <h2>How this was <em>made</em></h2>
-    <p class="sub">Three people, one Python script and no dashboard product. Everything you scrolled through is a single HTML file written by <i>build_dashboard.py</i>, so if a CSV changes the page can be rebuilt with the right numbers.</p>
+    <p class="sub">Three people, one script, no dashboard product. The whole page rebuilds itself from the CSVs, so <span class="aha">no number here can drift from its source.</span></p>
   </div>
   <div class="credgrid">
     <div class="ai">
