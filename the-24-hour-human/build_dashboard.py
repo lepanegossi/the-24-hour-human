@@ -205,6 +205,39 @@ def build_trivia():
 
 TRIVIA = build_trivia()
 
+# ── work vs. free time ───────────────────────────────────────────────────────
+# O eixo X era horas/ano, que contra lazer/dia dá r = -0.47 (R² 0.22): o texto
+# afirmava uma lei que o dado sustenta fracamente, e comparava ano com dia.
+# Trabalho pago/dia contra lazer/dia dá r = -0.66 (R² 0.44) e compara igual
+# com igual. Tendência, r e quartis vão calculados para o front não inventar.
+def _pearson(xs, ys):
+    n = len(xs)
+    mx, my = sum(xs) / n, sum(ys) / n
+    sx = math.sqrt(sum((a - mx) ** 2 for a in xs))
+    sy = math.sqrt(sum((b - my) ** 2 for b in ys))
+    return sum((a - mx) * (b - my) for a, b in zip(xs, ys)) / (sx * sy)
+
+
+_wx = [r["paw_h"] for r in cp]
+_wy = [r["lei_h"] for r in cp]
+_n = len(_wx)
+_mx, _my = sum(_wx) / _n, sum(_wy) / _n
+_wb = sum((a - _mx) * (b - _my) for a, b in zip(_wx, _wy)) / sum((a - _mx) ** 2 for a in _wx)
+_wa = _my - _wb * _mx
+_by_paw = sorted(cp, key=lambda r: r["paw_h"])
+_q = [_by_paw[0:9], _by_paw[9:18], _by_paw[18:27], _by_paw[27:]]
+wvl = {
+    "r": _pearson(_wx, _wy),
+    "a": _wa, "b": _wb,
+    "quartiles": [{
+        "n": len(g),
+        "paw": sum(r["paw_h"] for r in g) / len(g),
+        "lei": sum(r["lei_h"] for r in g) / len(g),
+    } for g in _q],
+}
+print(f"Work vs leisure: r={wvl['r']:.3f} (R2={wvl['r']**2:.2f}) "
+      f"quartis lazer={[round(q['lei'],2) for q in wvl['quartiles']]}")
+
 # médias dos 35 países, para a ficha da persona comparar "ela vs o mundo"
 AVG_KEYS = {"pca_h": "pca", "paw_h": "paw", "upw_h": "upw", "lei_h": "lei", "oth_h": "oth",
             "annual_working_hours": "wh", "retirement_age_men": "ret",
@@ -251,7 +284,7 @@ for _cat in ("paw_h", "lei_h", "upw_h"):
 print("Slopes vs ln(GDP) [h per +1 log-income]:", {k: round(v["b"], 3) for k, v in model.items()})
 
 DATA = json.dumps({"countries": countries, "gender": gender, "personas": personas,
-                   "model": model, "avg": avg})
+                   "model": model, "avg": avg, "wvl": wvl})
 
 
 def _clock_ticks(cx=60.0, cy=60.0, r=49.0, minor=3.5, major=7.5, n=24):
@@ -282,7 +315,9 @@ CSS = r"""
  /* the five time categories */
  --pca:#4f5bd5; --paw:#e04b5f; --upw:#f08a24; --lei:#0fa598; --oth:#9aa5b8;
  /* brand accents */
- --accent:#8b5cf6; --hot:#fd297b; --warm:#b8600f;
+ /* --accent e --warm escurecidos para passar 4.5:1 em texto sobre branco:
+    os valores anteriores (#8b5cf6 e #b8600f) mediam 4.23 e 4.45 */
+ --accent:#7c4ded; --hot:#fd297b; --warm:#ad5a0d;
  --women:#e0459b; --men:#4f5bd5;
  /* surfaces & ink (light act) */
  --ink:#141a33; --muted:#5a6285;
@@ -308,6 +343,10 @@ button{font:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 
+/* visually hidden but read aloud: the numbers behind every chart. A canvas is a
+   picture to a screen reader, so the data has to exist somewhere as text. */
+.srt{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;
+ overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 .skip{position:absolute;left:-999px;top:0;background:var(--accent);color:#fff;padding:12px 18px;
  border-radius:0 0 10px 0;z-index:99;font-weight:600;}
 .skip:focus{left:0}
@@ -384,7 +423,7 @@ section{margin-top:112px}
 
 /* ───────── night mood: the ink inverts once the sky goes dark ───────── */
 html[data-mood="dark"]{
- --ink:#f3f5ff; --muted:#a8afd2;
+ --ink:#f3f5ff; --muted:#a8afd2; --accent:#a78bfa;
  --card:rgba(255,255,255,.075); --card-2:rgba(255,255,255,.045);
  --line:rgba(255,255,255,.14);
  --shadow:0 18px 44px -20px rgba(0,0,0,.6);
@@ -781,6 +820,41 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
 .chartbox{position:relative;height:440px}
 .chartbox.twin{height:430px}
 
+/* ──────────── work vs. free time: flags on a plot ────────────
+   Was a Chart.js scatter of 35 anonymous dots: you could not find the people the
+   copy names, and it plotted a year against a day. Flags make every point
+   identifiable, the same trick that works on the retirement road. */
+.scplot{position:relative;height:400px;margin-left:56px;margin-bottom:34px;
+ border-left:1px solid var(--line);border-bottom:1px solid var(--line)}
+.scplot .gl{position:absolute;left:0;right:0;height:1px;background:var(--line);opacity:.6}
+.scplot .gv{position:absolute;top:0;bottom:0;width:1px;background:var(--line);opacity:.6}
+.sctrend{position:absolute;inset:0;overflow:visible;pointer-events:none}
+.sctrend line{stroke:var(--accent);stroke-width:2.5;stroke-dasharray:7 6;opacity:.7}
+.scmk{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;
+ overflow:hidden;border:2px solid var(--card);background:#eef1ff;
+ box-shadow:0 4px 12px -5px rgba(20,26,51,.6);transition:transform .25s;cursor:default}
+.scmk:hover{transform:scale(1.4);z-index:6}
+.scmk img{width:100%;height:100%;object-fit:cover;display:block}
+.scmk.p{border-color:#ffcf33;border-width:3px;
+ box-shadow:0 0 0 3px rgba(255,207,51,.32),0 4px 12px -5px rgba(20,26,51,.6);z-index:4}
+.scylab,.scxlab{position:absolute;font-size:11px;color:var(--muted);
+ font-variant-numeric:tabular-nums;white-space:nowrap}
+.scylab{right:calc(100% + 10px);transform:translateY(50%)}
+.scxlab{top:calc(100% + 9px);transform:translateX(-50%)}
+.scaxisname{font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+ font-weight:700;color:var(--muted)}
+.scaxisname.y{position:absolute;left:-56px;top:-26px}
+.scaxisname.x{position:absolute;left:50%;transform:translateX(-50%);top:calc(100% + 30px)}
+.scfoot{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;
+ flex-wrap:wrap;margin-top:14px;padding-top:16px;border-top:1px solid var(--line)}
+.scr{font-size:12.5px;color:var(--muted)}
+.scr b{color:var(--ink);font-variant-numeric:tabular-nums}
+.schov{min-height:22px;font-size:13px;font-weight:600;color:var(--ink)}
+.schov.idle{color:var(--muted);font-weight:500;font-style:italic}
+.scnote{margin-top:16px;font-size:13.5px;color:var(--muted);line-height:1.65}
+.scnote b{color:var(--ink);font-weight:700}
+@media(max-width:640px){.scplot{height:330px;margin-left:44px}.scmk{width:28px;height:28px;margin:-14px 0 0 -14px}}
+
 /* ──────────────── retirement road ──────────────── */
 .road-panel{overflow:hidden}
 .rsigns{position:relative;height:78px}
@@ -977,7 +1051,14 @@ BODY = r"""
       <div class="hint">&#128070; Click a country on the map to reveal its day.</div>
     </div>
   </div>
-  <div class="maplegend"><span>Fewer work hours/yr</span><span class="bar"></span><span>More work hours/yr</span></div>
+  <div class="maplegend" id="mapLegend"></div>
+  <p class="scnote" style="margin-top:14px">
+    <label for="mapPick" style="font-weight:700;color:var(--ink)">Or pick a country from the list:</label>
+    <select id="mapPick" style="margin-left:8px;padding:8px 11px;border-radius:10px;
+      border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:14px">
+      <option value="">Choose a country&hellip;</option>
+    </select>
+  </p>
 </section>
 
 </div><!-- /wrap -->
@@ -999,8 +1080,18 @@ BODY = r"""
 <section class="reveal" id="ch-tradeoff" data-nav="The trade-off">
   <div class="shead"><span class="chapno">06</span><span class="sh">The trade-off</span><span class="tchip">21:30 &middot; Evening</span></div>
   <h2>Work vs. <em>free time</em></h2>
-  <p class="sub">Remember our five friends? Here's where each of them lands when we weigh a whole year of work against their daily free time. <span class="aha">The more a country works across the year, the less it plays each day.</span> Camille takes it slow, Sof&iacute;a barely catches a break, and the others fall somewhere in between. Same 24 hours, very different lives.</p>
-  <div class="panel"><div class="chartbox"><canvas id="scatterChart"></canvas></div></div>
+  <p class="sub">Remember our five friends? Every flag is one country, placed by how long its day at work runs and how much of the day is left for itself. <span class="aha">The harder a country works, the less it plays</span> &mdash; and you can watch the flags drift down as they move right. Camille takes it slow, Sof&iacute;a barely catches a break, and our five are ringed in gold so you can find them.</p>
+  <div class="panel">
+    <div class="scplot" id="scPlot">
+      <span class="scaxisname y">Leisure</span>
+      <span class="scaxisname x">Paid work per day</span>
+    </div>
+    <div class="scfoot">
+      <div class="schov idle" id="scHov">Hover a flag to see its day</div>
+      <div class="scr" id="scR"></div>
+    </div>
+    <p class="scnote" id="scNote"></p>
+  </div>
 </section>
 
 <section class="reveal" id="ch-retire" data-nav="Working until when">
@@ -1124,6 +1215,25 @@ const ring=(data,cut='68%',onHover=null)=>({type:'doughnut',
    stopped meaning anything. */
 const dayKey=()=>`<div class="dbkey">${CATS.map((c,i)=>
   `<span><i style="background:${COL[i]}"></i>${c}</span>`).join('')}</div>`;
+/* ── screen-reader equivalents for the charts ──
+   Chart.js paints into a <canvas>, which is an opaque image to assistive tech.
+   Each chart gets role="img" plus a label carrying its headline, and the ones
+   whose content IS the numbers also get a hidden table with every value. */
+function srTable(caption,head,rows){
+  // the table goes inside a hidden div, not hidden itself: a table ignores
+  // width:1px and expands to its content, and display:block would strip the
+  // table semantics that make it readable in the first place
+  return `<div class="srt"><table><caption>${caption}</caption><thead><tr>${
+    head.map(h=>`<th scope="col">${h}</th>`).join('')}</tr></thead><tbody>${
+    rows.map(r=>`<tr><th scope="row">${r[0]}</th>${
+      r.slice(1).map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+function describe(canvas,label){
+  if(!canvas)return;
+  canvas.setAttribute('role','img');
+  canvas.setAttribute('aria-label',label);
+}
+
 const DB_IDLE='Hover a block for its hours';
 function dayStrip(vals,o){
   o=o||{};
@@ -1354,6 +1464,8 @@ D.personas.forEach((p,i)=>{
   const cv=document.getElementById('clk'+i);
   new Chart(cv,ring(p.clock,'70%',(ev,els)=>setCap(els.length?els[0].index:-1)));
   cv.addEventListener('mouseleave',()=>setCap(-1));   // onHover does not fire on leave
+  describe(cv,`${p.name}'s 24 hours in ${p.country}: `+
+    CATS.map((c,n)=>`${c} ${hm(p.clock[n])}`).join(', '));
 });
 
 /* ── persona detail modal ──
@@ -1483,6 +1595,17 @@ function updTotals(){
 }
 ids.forEach(k=>document.getElementById('q_'+k).addEventListener('input',updTotals));
 updTotals();
+/* a slider reading "10" is announced as ten of something. aria-valuetext says
+   what: "10 hours 00 minutes". Kept in sync on every move. */
+function sliderText(){
+  ids.forEach(k=>{
+    const el=document.getElementById('q_'+k),v=parseFloat(el.value);
+    el.setAttribute('aria-valuetext',`${Math.floor(v)} hours ${Math.round((v%1)*60)} minutes`);
+  });
+  const gEl=document.getElementById('predGrowth');
+  gEl.setAttribute('aria-valuetext',`plus ${gEl.value} percent growth by 2050`);
+}
+ids.forEach(k=>document.getElementById('q_'+k).addEventListener('input',sliderText));
 document.getElementById('qbtn').addEventListener('click',()=>{
   const q=readQuiz();let v=[q.pca,q.paw,q.upw,q.lei],sum=v.reduce((a,b)=>a+b,0);
   let oth=Math.max(0,24-sum);if(sum>24){const f=24/sum;v=v.map(x=>x*f);oth=0;}
@@ -1608,22 +1731,77 @@ themed.push(new Chart(document.getElementById('leisureChart'),{type:'bar',
   options:hBars('Leisure per day')}));
 retintAll(mood);
 
-/* ── work vs free time ── */
-const pts=D.countries.map(c=>({x:c.wh,y:c.lei,c:c.country,iso:c.iso3}));
-themed.push(new Chart(document.getElementById('scatterChart'),{type:'scatter',
-  data:{datasets:[
-    {label:'Countries',data:pts.filter(p=>!personaISO.includes(p.iso)),
-      backgroundColor:'rgba(79,91,213,.42)',borderColor:'rgba(79,91,213,.85)',borderWidth:1.5,
-      pointRadius:7,pointHoverRadius:10},
-    {label:'Our five humans',data:pts.filter(p=>personaISO.includes(p.iso)),
-      backgroundColor:'#f08a24',borderColor:'#fff',borderWidth:2,
-      pointRadius:11,pointHoverRadius:14,pointStyle:'triangle'}]},
-  options:{plugins:{legend:{labels:{color:TXD,usePointStyle:true,boxWidth:9,padding:16}},
-    tooltip:{callbacks:{label:c=>` ${c.raw.c}: ${Math.round(c.raw.x)}h/yr, ${hm(c.raw.y)} leisure`}}},
-    scales:{x:{ticks:{color:TX},grid:{color:GRID},border:{color:GRID},
-        title:{display:true,text:'Hours worked per year',color:TX,font:{size:11.5,weight:'600'}}},
-      y:{ticks:{color:TX,callback:v=>v+'h'},grid:{color:GRID},border:{color:GRID},
-        title:{display:true,text:'Leisure per day',color:TX,font:{size:11.5,weight:'600'}}}}}}));
+// the whole point of these two charts is the numbers, so they exist as text too
+const gTop=g[0];
+describe(document.getElementById('genderChart'),
+  `Unpaid work per day, women against men, in the ten countries with the widest gap. `+
+  `Widest is ${gTop.country}: women ${hm(gTop.f)}, men ${hm(gTop.m)}.`);
+describe(document.getElementById('leisureChart'),
+  `Leisure per day, women against men, in the same ten countries. `+
+  `Men have more in every one of them.`);
+document.getElementById('genderChart').closest('.panel').insertAdjacentHTML('beforeend',
+  srTable('Unpaid work per day, by sex',['Country','Women','Men','Gap'],
+    g.map(x=>[x.country,hm(x.f),hm(x.m),Math.round((x.f-x.m)*60)+' min'])));
+document.getElementById('leisureChart').closest('.panel').insertAdjacentHTML('beforeend',
+  srTable('Leisure per day, by sex',['Country','Women','Men','Gap'],
+    g.map(x=>[x.country,hm(x.leiF),hm(x.leiM),Math.round((x.leiM-x.leiF)*60)+' min'])));
+
+/* ── work vs. free time: flags placed on a plot, plus the real trend ── */
+const W=D.wvl;
+function drawWorkVsLeisure(){
+  const el=document.getElementById('scPlot');
+  el.querySelectorAll('.scmk,.gl,.gv,.scylab,.scxlab,.sctrend').forEach(n=>n.remove());
+  const xs=D.countries.map(c=>c.paw),ys=D.countries.map(c=>c.lei);
+  const x0=Math.floor(Math.min(...xs)*2)/2-0.25,x1=Math.ceil(Math.max(...xs)*2)/2+0.25;
+  const y0=Math.floor(Math.min(...ys)*2)/2-0.25,y1=Math.ceil(Math.max(...ys)*2)/2+0.25;
+  const px=v=>(v-x0)/(x1-x0)*100,py=v=>(v-y0)/(y1-y0)*100;
+  let g='';
+  for(let v=Math.ceil(y0);v<=y1;v++)
+    g+=`<span class="gl" style="bottom:${py(v)}%"></span><span class="scylab" style="bottom:${py(v)}%">${v}h</span>`;
+  for(let v=Math.ceil(x0);v<=x1;v++)
+    g+=`<span class="gv" style="left:${px(v)}%"></span><span class="scxlab" style="left:${px(v)}%">${v}h</span>`;
+  const ly0=W.a+W.b*x0,ly1=W.a+W.b*x1;
+  g+=`<svg class="sctrend" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <line x1="0" y1="${(100-py(ly0)).toFixed(2)}" x2="100" y2="${(100-py(ly1)).toFixed(2)}"
+        vector-effect="non-scaling-stroke"/></svg>`;
+  g+=D.countries.map(c=>`<span class="scmk${personaISO.includes(c.iso3)?' p':''}"
+      style="left:${px(c.paw)}%;bottom:${py(c.lei)}%" data-i="${c.iso3}">
+      <img src="assets/flags/${c.iso2}.png" alt="" loading="lazy"></span>`).join('');
+  el.insertAdjacentHTML('afterbegin',g);
+  document.getElementById('scR').innerHTML=
+    `Trend across all 35 &middot; correlation <b>r = ${W.r.toFixed(2)}</b>, so how long a
+     country works explains about <b>${Math.round(W.r*W.r*100)}%</b> of the gap in leisure.`;
+  const q=W.quartiles,light=(q[0].lei+q[1].lei+q[2].lei)/3,gap=Math.round((light-q[3].lei)*60);
+  document.getElementById('scNote').innerHTML=
+    `Split the 35 into quarters by how long they work and the drop is not gradual: the three
+     lighter-working quarters all sit near <b>${hm(light)}</b> of leisure, and only the
+     hardest-working quarter breaks away at <b>${hm(q[3].lei)}</b> &mdash; about
+     <b>${gap} minutes</b> less every single day. Working somewhat more costs you little.
+     Working a lot more costs you an hour.`;
+}
+drawWorkVsLeisure();
+let wT;window.addEventListener('resize',()=>{clearTimeout(wT);wT=setTimeout(drawWorkVsLeisure,200);});
+// the plot is 35 flags positioned by CSS: unreachable by screen reader, so the
+// same 35 rows exist as a table, sorted the way the chart is read
+document.getElementById('scPlot').setAttribute('role','img');
+document.getElementById('scPlot').setAttribute('aria-label',
+  `Scatter plot of 35 countries: paid work per day against leisure per day. `+
+  `Correlation r equals ${W.r.toFixed(2)}. The full figures follow in a table.`);
+document.getElementById('scPlot').closest('.panel').insertAdjacentHTML('beforeend',
+  srTable('Paid work and leisure per day, by country',
+    ['Country','Paid work','Leisure'],
+    [...D.countries].sort((a,b)=>b.paw-a.paw).map(c=>[c.country,hm(c.paw),hm(c.lei)])));
+const scPlotEl=document.getElementById('scPlot'),scHov=document.getElementById('scHov');
+scPlotEl.addEventListener('mouseover',e=>{
+  const m=e.target.closest('.scmk');if(!m)return;
+  const c=D.countries.find(x=>x.iso3===m.dataset.i);
+  scHov.className='schov';
+  scHov.innerHTML=`${c.flag} <b>${c.country}</b> &middot; ${hm(c.paw)} of paid work &middot; ${hm(c.lei)} of leisure`;
+});
+scPlotEl.addEventListener('mouseout',e=>{
+  if(!e.target.closest('.scmk'))return;
+  scHov.className='schov idle';scHov.textContent='Hover a flag to see its day';
+});
 retintAll(mood);   // the trade-off chapter can already be in night mood
 
 /* ── retirement road (re-laid out on resize) ── */
@@ -1718,10 +1896,11 @@ function renderPred(){
     <div class="ptcard catch"><h4>&#9888;&#65039; The catch</h4><p>${catchTxt}</p></div>`;
 }
 selC.addEventListener('change',renderPred);
-document.getElementById('predGrowth').addEventListener('input',renderPred);
+document.getElementById('predGrowth').addEventListener('input',()=>{renderPred();sliderText();});
 document.querySelectorAll('.predquick button').forEach(b=>b.addEventListener('click',()=>{
   document.getElementById('predGrowth').value=b.dataset.g;renderPred();}));
 renderPred();
+sliderText();
 
 /* ── interactive globe ── */
 const whs=D.countries.map(c=>c.wh),whMin=Math.min(...whs),whMax=Math.max(...whs);
@@ -1742,6 +1921,24 @@ function selectCountry(c){
       <div><span>Retires (men)</span><b>${c.ret.toFixed(0)} yrs</b></div>
     </div>`;
 }
+/* the legend was colour only, with no numbers attached to either end */
+document.getElementById('mapLegend').innerHTML=
+  `<span>${Math.round(Math.min(...D.countries.map(c=>c.wh)))}h/yr</span>
+   <span class="bar"></span>
+   <span>${Math.round(Math.max(...D.countries.map(c=>c.wh)))}h/yr</span>
+   <span style="text-transform:none;letter-spacing:0;font-weight:500">worked per year</span>`;
+
+/* dragging a globe is mouse-only. This opens the same panel from the keyboard,
+   and honestly it is faster than spinning the planet hunting for a country. */
+const mapPick=document.getElementById('mapPick');
+[...D.countries].sort((a,b)=>a.country.localeCompare(b.country)).forEach(c=>{
+  const o=document.createElement('option');o.value=c.iso3;o.textContent=`${c.flag} ${c.country}`;
+  mapPick.appendChild(o);});
+mapPick.addEventListener('change',()=>{
+  const c=D.countries.find(x=>x.iso3===mapPick.value);
+  if(c)selectCountry(c);
+});
+
 const gEl=document.getElementById('globe');
 if(typeof Globe==='undefined'){
   gEl.innerHTML='<div style="color:#a8afd2;padding:30px;text-align:center">Globe library failed to load. Check that assets/lib/globe.gl.min.js exists.</div>';
