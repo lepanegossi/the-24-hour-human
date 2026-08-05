@@ -1465,7 +1465,10 @@ BODY = r"""
        text, and then the picture holds the silence after it -->
   <figure class="shiftimg endimg">
     <img src="assets/img/second-shift.webp" alt="A block of flats at night, nearly every window dark, with one kitchen window still lit." loading="lazy">
-    <figcaption class="shiftcap">Somewhere a light is still on, and the count has already started over. <b>Your next 1,440 minutes began while you were reading this.</b></figcaption>
+    <!-- deliberately the hero thesis said back in the language of the picture:
+         "the fairest thing the world hands out, and the most unequal thing we do
+         with it". Closing the loop, not repeating the count stated just above. -->
+    <figcaption class="shiftcap">The hours arrive the same for everyone behind these windows. <b>What happens to them never does.</b></figcaption>
   </figure>
 </section>
 
