@@ -568,6 +568,21 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
 .bub .bvl{font-family:var(--display);font-size:16px;font-weight:500;color:var(--ringc,var(--paw));
  font-variant-numeric:tabular-nums}
 
+/* ──────────────── the double shift: one image, two beats ────────────────
+   The climax carried the heaviest text on the page and two bar charts. The scene
+   is a block of flats at night with one kitchen light still on: the second shift
+   without reducing anyone to a person with a broom. Measured luminance 4.4, so it
+   sits inside the night band instead of punching a hole in it. */
+.shiftimg{position:relative;border-radius:var(--r);overflow:hidden;margin-bottom:24px;
+ box-shadow:0 24px 60px -30px rgba(0,0,0,.8)}
+.shiftimg img{display:block;width:100%;height:auto}
+.shiftimg::after{content:"";position:absolute;inset:auto 0 0 0;height:38%;
+ background:linear-gradient(180deg,transparent,rgba(10,14,36,.72))}
+.shiftcap{position:absolute;left:0;right:0;bottom:0;z-index:1;padding:20px 24px;
+ font-size:13.5px;line-height:1.5;color:#e8ebff;text-shadow:0 2px 10px rgba(0,0,0,.7)}
+.shiftcap b{color:#fff;font-weight:700}
+@media(max-width:640px){.shiftcap{font-size:12.5px;padding:14px 16px}}
+
 /* ──────────────── the twin charts (double shift) ──────────────── */
 .twinwrap{display:grid;grid-template-columns:1fr 1fr;gap:22px}
 @media(max-width:780px){.twinwrap{grid-template-columns:1fr}}
@@ -864,9 +879,13 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
   <h2>The <em>double shift</em></h2>
   <p class="sub">The double shift, and one stubborn question: why is it almost always women? There's a second shift, the invisible one: cooking, cleaning, raising children, caring for elders. It never shows on a payslip, it sits outside policy indicators, and it stays out of the conversation. Around the world it lands overwhelmingly on women. <span class="aha">In India, women do about five more hours of unpaid work every single day than men.</span> Turkey, Portugal and Mexico aren't far behind, while only the Nordics come close to sharing it evenly. And the penalty is double: those same women also get less time to rest. In Portugal and Italy, men enjoy almost an hour and a half more leisure every single day. Calling women strong and empowered doesn't erase those extra hours. This is the part of the day the economy never counts, the part that shapes millions of lives most, and it's long past time we talked about it as a society.</p>
   </div>
-  <div class="twinwrap">
-    <div class="panel"><div class="tcap">&#127968; Unpaid work / day <span>women do more</span></div><div class="chartbox twin"><canvas id="genderChart"></canvas></div></div>
-    <div class="panel"><div class="tcap">&#128715; Leisure / day <span>men get more</span></div><div class="chartbox twin"><canvas id="leisureChart"></canvas></div></div>
+  <figure class="shiftimg">
+    <img src="assets/img/second-shift.webp" alt="A block of flats at night, nearly every window dark, with one kitchen window still lit." loading="lazy">
+    <figcaption class="shiftcap">Long after the paid day ends, somewhere a light is still on. <b>This is the shift no payslip counts.</b></figcaption>
+  </figure>
+  <div class="twinwrap" id="twinWrap">
+    <div class="panel st" style="--i:0"><div class="tcap">&#127968; Unpaid work / day <span>women do more</span></div><div class="chartbox twin"><canvas id="genderChart"></canvas></div></div>
+    <div class="panel st" style="--i:7"><div class="tcap">&#128715; Leisure / day <span>men get more</span></div><div class="chartbox twin"><canvas id="leisureChart"></canvas></div></div>
   </div>
 </section>
 </div></div>
@@ -1255,6 +1274,10 @@ window.addEventListener('resize',onScroll);onScroll();
 const io=new IntersectionObserver(es=>es.forEach(e=>{
   if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:.12});
 document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+/* Every section starts at opacity 0 and waits on that observer, so if it ever
+   fails the page reads as blank. Cheap insurance: after 10s, reveal anything
+   still hidden. Nobody should lose the whole story to one API. */
+setTimeout(()=>document.querySelectorAll('.reveal:not(.in)').forEach(el=>el.classList.add('in')),10000);
 
 /* ── hero stats count up when they come into view ── */
 const cio=new IntersectionObserver(es=>es.forEach(e=>{
@@ -1605,18 +1628,49 @@ const hBars=title=>({indexAxis:'y',responsive:true,maintainAspectRatio:false,
     y:{ticks:{color:TXD,font:{weight:'500'}},grid:{display:false},border:{display:false}}}});
 const barSet=(label,data,color)=>({label,data,backgroundColor:color,borderRadius:5,
   barPercentage:.82,categoryPercentage:.74});
-themed.push(new Chart(document.getElementById('genderChart'),{type:'bar',
-  data:{labels:g.map(x=>x.country),datasets:[
-    barSet('Women',g.map(x=>x.f),'#e0459b'),barSet('Men',g.map(x=>x.m),'#6b78e8')]},
-  options:hBars('Unpaid work per day')}));
-themed.push(new Chart(document.getElementById('leisureChart'),{type:'bar',
-  data:{labels:g.map(x=>x.country),datasets:[
-    barSet('Women',g.map(x=>x.leiF),'#e0459b'),barSet('Men',g.map(x=>x.leiM),'#6b78e8')]},
-  options:hBars('Leisure per day')}));
-retintAll(mood);
+/* Two beats, not one. The copy says the penalty is double, but both charts used
+   to arrive in the same instant, so the second half of the argument landed for
+   free. The unpaid-work chart comes in first; leisure follows after a pause, and
+   the bars are only built once the section is on screen so the growth is seen
+   rather than played to an empty room. */
+const twin=document.getElementById('twinWrap');
+let twinBuilt=false;
+function buildTwin(){
+  if(twinBuilt)return;twinBuilt=true;
+  themed.push(new Chart(document.getElementById('genderChart'),{type:'bar',
+    data:{labels:g.map(x=>x.country),datasets:[
+      barSet('Women',g.map(x=>x.f),'#e0459b'),barSet('Men',g.map(x=>x.m),'#6b78e8')]},
+    options:hBars('Unpaid work per day')}));
+  // the leisure chart waits out the first beat before it starts drawing
+  setTimeout(()=>{
+    themed.push(new Chart(document.getElementById('leisureChart'),{type:'bar',
+      data:{labels:g.map(x=>x.country),datasets:[
+        barSet('Women',g.map(x=>x.leiF),'#e0459b'),barSet('Men',g.map(x=>x.leiM),'#6b78e8')]},
+      options:hBars('Leisure per day')}));
+    retintAll(mood);
+  },reduce?0:700);
+  retintAll(mood);
+  void twin.offsetHeight;twin.classList.add('go');
+}
+/* Three paths to the same call, because the charts must exist even if the timing
+   trick does not. buildTwin is idempotent, so whichever fires first wins:
+   the observer for the nice moment, a plain rect check for browsers where it
+   misbehaves, and a timer as the guarantee. Losing the animation is a shame;
+   losing the climax's two charts is not acceptable. */
+const twinInView=()=>{
+  const r=twin.getBoundingClientRect();
+  return r.top<window.innerHeight*0.9 && r.bottom>0;
+};
+new IntersectionObserver((es,ob)=>es.forEach(e=>{
+  if(e.isIntersecting){buildTwin();ob.disconnect();}
+}),{threshold:.15}).observe(twin);
+window.addEventListener('scroll',()=>{if(twinInView())buildTwin();},{passive:true});
+if(twinInView())buildTwin();
+setTimeout(buildTwin,8000);
 
 // the whole point of these two charts is the numbers, so they exist as text too
 const gTop=g[0];
+// (safe before the charts are built: these only touch the canvas and its panel)
 describe(document.getElementById('genderChart'),
   `Unpaid work per day, women against men, in the ten countries with the widest gap. `+
   `Widest is ${gTop.country}: women ${hm(gTop.f)}, men ${hm(gTop.m)}.`);
