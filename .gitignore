@@ -12,3 +12,11 @@ Thumbs.db
 # Editor
 .vscode/
 .idea/
+
+# Artwork originals (AI-generated skies and persona portraits).
+# The page only ever loads the converted WebP in the-24-hour-human/assets/,
+# so these ~24 MB of source JPEG stay out of the repo history.
+_sources/
+/*.jpg
+/*.jpeg
+/*.png
