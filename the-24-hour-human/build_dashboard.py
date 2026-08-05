@@ -2016,8 +2016,9 @@ function setupPersonaVideo(p){
   s.addEventListener('error',soon);
   v.appendChild(s);
   // Captions are a Level A requirement for pre-recorded speech, and most people
-  // at a judging table watch muted anyway. The track is wired now; drop the .vtt
-  // next to the .mp4 and it appears, failing silently while it does not exist.
+  // at a judging table watch muted anyway. Each .vtt sits next to its .mp4 and is
+  // transcribed from that video's own narration; a persona without one still plays,
+  // because a missing track fails quietly and the build warns about it instead.
   const tr=document.createElement('track');
   tr.kind='captions';tr.label='English';tr.srclang='en';tr.default=true;
   tr.src=p.video.replace(/\.mp4$/,'.vtt');
@@ -2544,8 +2545,14 @@ def check_assets(html):
             missing.append(f"assets/avatars/{iso}.webp (cai no .svg antigo)")
         if not (ROOT / p["video"]).exists():
             missing.append(f"{p['video']} (mostra placeholder)")
-        elif not (ROOT / p["videoPoster"]).exists():
-            missing.append(f"{p['videoPoster']} (video sem thumbnail)")
+        else:
+            if not (ROOT / p["videoPoster"]).exists():
+                missing.append(f"{p['videoPoster']} (video sem thumbnail)")
+            # legenda e requisito WCAG nivel A para fala gravada: se o video existe
+            # e o .vtt nao, a pagina quebra o unico criterio basico que ela cumpre
+            vtt = p["video"][:-4] + ".vtt"
+            if not (ROOT / vtt).exists():
+                missing.append(f"{vtt} (video sem legenda, quebra WCAG 1.2.2)")
     if missing:
         print(f"AVISO: {len(missing)} asset(s) ausente(s), usando fallback:")
         for m in missing:

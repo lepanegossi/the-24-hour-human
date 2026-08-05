@@ -15,6 +15,25 @@ python3 -m http.server 8777         # serve the folder
 
 > Tip: when you regenerate, open with a cache-buster (`?v=123`) or hard-refresh (Cmd+Shift+R). The browser caches aggressively.
 
+The build prints a warning for every asset it could not find, including a video
+without captions. Nothing breaks — each missing asset has a fallback — so that
+warning is the only way to notice a file that was never added or was named wrong.
+
+### Captions for a persona video
+
+Captions are a WCAG 1.2.2 (level A) requirement for recorded speech. Each video
+needs a `.vtt` next to it, transcribed from that video's own audio:
+
+```bash
+python3 -m venv /tmp/vtt-venv
+/tmp/vtt-venv/bin/pip install faster-whisper
+/tmp/vtt-venv/bin/python make_captions.py assets/video/jpn.mp4
+```
+
+Read the result against the audio before committing — the transcription is good,
+not perfect. Afterwards the venv and the model cache (`~/.cache/huggingface`) can
+be deleted.
+
 ## Structure
 
 ```
