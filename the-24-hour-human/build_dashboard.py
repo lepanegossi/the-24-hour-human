@@ -476,7 +476,7 @@ CSS_TYPE = r"""
  font-weight:700;margin-bottom:18px}
 /* heavier weight and a darker gradient: at 116px the old 300 weight was hairline,
    and the warm end (#f08a24) had almost no contrast against a pale sky */
-.hero h1{font-family:var(--display);font-weight:600;font-size:clamp(44px,9vw,104px);
+.hero h1{font-family:var(--display);font-weight:600;font-size:clamp(46px,9.6vw,116px);
  line-height:.92;letter-spacing:-.03em;font-variation-settings:"SOFT" 24,"WONK" 1;
  background:linear-gradient(104deg,#232c5e 0%,#3f4bc4 28%,#8b3fa8 54%,#b32f57 78%,#c2551a 100%);
  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
@@ -484,11 +484,12 @@ CSS_TYPE = r"""
 /* the thesis, stated instead of implied. The hero used to only invite you to
    explore, so a judge skimming never learned what the piece argues. */
 .hero .thesis{font-family:var(--display);font-weight:500;font-style:italic;
- font-size:clamp(19px,2.5vw,29px);line-height:1.32;color:var(--ink);max-width:26ch;
- margin:18px auto 0;position:relative;padding-top:18px}
+ font-size:clamp(16px,1.95vw,25px);line-height:1.3;color:var(--ink);max-width:none;
+ white-space:nowrap;margin:18px auto 0;position:relative;padding-top:18px}
 .hero .thesis::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);
  width:64px;height:2px;border-radius:2px;
  background:linear-gradient(90deg,var(--pca),var(--paw),var(--upw),var(--lei))}
+@media(max-width:820px){.hero .thesis{white-space:normal;max-width:26ch}}
 .hero .lead{font-size:clamp(14.5px,1.4vw,17px);color:var(--muted);max-width:62ch;margin:14px auto 0}
 .hero .lead b{color:var(--ink);font-weight:600}
 .stat .l br{display:none}
@@ -524,7 +525,6 @@ html[data-mood="dark"] .stat .l{color:var(--muted)}
 @media(max-height:930px){
  .hero{padding:36px 0 18px}
  .heroclock{width:84px;height:84px;margin-bottom:12px}
- .hero h1{font-size:clamp(40px,8vw,86px)}
  .hero .thesis{font-size:clamp(17px,2.1vw,24px);margin-top:12px;padding-top:12px}
  .hero .lead{font-size:15.5px;margin-top:10px}
  .stats{margin-top:18px}
@@ -555,13 +555,13 @@ h2 em{font-style:italic;font-variation-settings:"WONK" 1}
    The intro block now gets the same kind of surface the chart panels have, so
    legibility no longer depends on which sky happens to be behind it.
    Worst case after this: 6.09:1 in light mode, 8.14:1 in dark. */
-.sintro{background:rgba(255,255,255,.78);backdrop-filter:blur(10px) saturate(1.08);
- border:1px solid rgba(255,255,255,.72);border-radius:var(--r);
+.sintro{background:rgba(255,255,255,.55);backdrop-filter:blur(16px) saturate(1.06);
+ border:1px solid rgba(255,255,255,.5);border-radius:var(--r);
  padding:24px 28px 2px;margin-bottom:26px;box-shadow:var(--shadow)}
 .sintro .sub{margin-bottom:22px}
 .sintro h2{margin-top:4px}
-html[data-mood="dark"] .sintro{background:rgba(12,16,42,.68);
- border-color:rgba(255,255,255,.13)}
+html[data-mood="dark"] .sintro{background:rgba(12,16,42,.45);
+ border-color:rgba(255,255,255,.1)}
 @media(max-width:640px){.sintro{padding:20px 20px 2px}}
 .aha{color:var(--warm);font-weight:600;box-shadow:inset 0 -.48em 0 rgba(240,138,36,.18)}
 html[data-mood="dark"] .aha{box-shadow:inset 0 -.48em 0 rgba(255,195,122,.15)}
@@ -1050,7 +1050,7 @@ BODY = r"""
   </div>
   <div class="kicker">An interactive data story &middot; VizCon 2026</div>
   <h1>The 24-Hour Human</h1>
-  <p class="thesis">The fairest thing the world hands out,<br>and the most unequal thing we do with it.</p>
+  <p class="thesis">The fairest thing the world hands out, and the most unequal thing we do with it.</p>
   <p class="lead">Everyone alive gets the same <b>1,440 minutes</b> tomorrow morning. Where you were born quietly rewrites how you spend them &mdash; how long you work, how much you rest, who carries the work nobody pays for. Follow the day and watch it happen.</p>
   <div class="stats">
     <div class="stat" style="--ac:#f08a24">
@@ -1082,7 +1082,7 @@ BODY = r"""
   <div class="sintro">
   <div class="shead"><span class="chapno">01</span><span class="sh">Meet our humans</span><span class="tchip">07:00 &middot; Morning</span></div>
   <h2>One day, <em>five lives</em></h2>
-  <p class="sub">Meet our neighbors from around the world, one from each continent. Here's where you'll see how a single day can look completely different depending on where you stand, and how that everyday routine really plays out across the globe. What could each place add to your own day? (Each ring is one real 24-hour day; hover to explore the hours.)</p>
+  <p class="sub">Meet our neighbors from around the world, one from each continent. Here's where you'll see how a single day can look completely different depending on where you stand, and how that everyday routine really plays out across the globe. What could each place add to your own day? Each ring is one real 24-hour day, so hover it to explore the hours &mdash; then <span class="aha">click any card to open that person's day in full</span>, with their story, their numbers against the world, and them telling you about it.</p>
   </div>
   <div class="pgrid" id="personaGrid"></div>
   <div class="pdetail" id="personaDetail" tabindex="-1" hidden></div>
