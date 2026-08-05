@@ -274,7 +274,7 @@ html[data-mood="dark"] .aha{box-shadow:inset 0 -.48em 0 rgba(255,195,122,.15)}
 .st{opacity:0;transform:translateY(20px);
  transition:opacity .6s cubic-bezier(.2,.7,.2,1),transform .6s cubic-bezier(.2,.7,.2,1);
  transition-delay:calc(var(--i,0) * 85ms)}
-.pdetail.go .st{opacity:1;transform:none}
+.go .st{opacity:1;transform:none}
 @media(prefers-reduced-motion:reduce){
  .st{opacity:1;transform:none;transition:none;transition-delay:0s}
  .pgrid{transition:none}}
@@ -404,7 +404,38 @@ html[data-mood="dark"] .pmnum .d.dn{color:#ff8095}
 .maplegend .bar{height:8px;width:180px;border-radius:999px;
  background:linear-gradient(90deg,#ffd60a,#ff8c1a,#d61440)}
 
-/* ──────────────── who works the most: flag bubbles ──────────────── */
+/* ──────────── topic picker: pick a slice of the day, see who leads ────────────
+   The cards stay on screen and act as a selector: the ranking below swaps in
+   place. Hiding them on click would make comparing two categories a round trip.
+   Each card has a gradient fallback behind the image, so a missing file still
+   reads as a card instead of a blank box. */
+.tgrid{display:flex;flex-wrap:wrap;gap:18px;justify-content:center}
+.tgrid>.tcard{flex:0 1 calc((100% - 36px)/3)}
+@media(max-width:900px){.tgrid>.tcard{flex:0 1 calc((100% - 18px)/2)}}
+@media(max-width:560px){.tgrid>.tcard{flex:0 1 100%}}
+.tcard{position:relative;aspect-ratio:4/3;border-radius:18px;overflow:hidden;cursor:pointer;
+ border:1px solid var(--line);padding:0;font:inherit;color:#fff;box-shadow:var(--shadow);
+ background-image:var(--img),var(--fb);background-size:cover;background-position:center;
+ transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .35s}
+.tcard:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg)}
+.tcard::after{content:"";position:absolute;inset:0;
+ background:linear-gradient(180deg,rgba(10,14,36,0) 34%,rgba(10,14,36,.8))}
+.tcard b{position:absolute;left:0;right:0;bottom:0;z-index:1;padding:18px 18px 20px;
+ font-family:var(--display);font-size:24px;font-weight:600;line-height:1.15;
+ text-align:center;text-shadow:0 2px 14px rgba(0,0,0,.65)}
+.tcard i{position:absolute;top:16px;left:18px;z-index:1;font-style:normal;font-size:28px;
+ filter:drop-shadow(0 2px 8px rgba(0,0,0,.55))}
+.tcard.on{outline:3px solid var(--accent);outline-offset:3px}
+.tcard.on::after{background:linear-gradient(180deg,rgba(10,14,36,0) 26%,rgba(10,14,36,.86))}
+.trank{margin-top:28px}
+.trankcap{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.trankcap h3{font-family:var(--display);font-size:26px;font-weight:600}
+.trankcap span{font-size:13.5px;color:var(--muted)}
+.tnote{margin-top:20px;padding-top:18px;border-top:1px solid var(--line);
+ font-size:13.5px;color:var(--muted);line-height:1.6}
+.tnote b{color:var(--ink);font-weight:700}
+
+/* ──────────────── ranking bubbles: flags sized by value ──────────────── */
 .bubbles{display:flex;flex-wrap:wrap;gap:30px 26px;align-items:flex-end;justify-content:center;padding:16px 0}
 .bub{text-align:center;transition:transform .35s cubic-bezier(.2,.7,.2,1)}
 .bub:hover{transform:translateY(-6px)}
@@ -618,11 +649,12 @@ html[data-mood="dark"] .pmnum .d.dn{color:#ff8095}
   <div class="maplegend"><span>Fewer work hours/yr</span><span class="bar"></span><span>More work hours/yr</span></div>
 </section>
 
-<section class="reveal" id="ch-work" data-nav="Who works most">
+<section class="reveal" id="ch-topics" data-nav="Who does it most">
   <div class="shead"><span class="chapno">04</span><span class="sh">The first surprise</span><span class="tchip">15:00 &middot; Afternoon</span></div>
-  <h2>Who works <em>the most?</em></h2>
-  <p class="sub">Here's the first surprise: the countries that work the most aren't the richest. Over a full year, people in India, China and South Africa put in around 2,300 hours, while Germany and the Nordics stop near 1,350, almost half as much. <span class="aha">The richer a country gets, the fewer hours it works.</span> Wealth is what lets a nation ease off the clock.</p>
-  <div class="panel"><div class="bubbles" id="workBubbles"></div></div>
+  <h2>Who does it <em>most?</em></h2>
+  <p class="sub">The same 1,440 minutes, split five ways &mdash; and every one of those slices has a world champion. <span class="aha">Pick a piece of the day</span> to see which countries spend the most of it, and which one sits at the other end. Some rankings are exactly what you would guess. One of them is the first real surprise in this data.</p>
+  <div class="tgrid" id="topicGrid"></div>
+  <div class="trank" id="topicRank"></div>
 </section>
 
 </div><!-- /wrap -->
@@ -1096,17 +1128,77 @@ document.getElementById('qbtn').addEventListener('click',()=>{
   qc=new Chart(document.getElementById('qclock'),ring([best.pca,best.paw,best.upw,best.lei,best.oth],'62%'));
 });
 
-/* ── who works the most: flag bubbles sized and ringed by hours/year ── */
-const whAll=D.countries.map(c=>c.wh),whLo=Math.min(...whAll),whHi=Math.max(...whAll);
+/* ── topic picker: one ranking per slice of the day ──
+   Artwork goes in assets/topics/<img>.webp (4:3). Until a file exists the
+   card falls back to its gradient, so nothing looks broken. */
+const TOPICS=[
+  {k:'pca',ic:'&#128564;',img:'personal-care',col:COL[0],unit:'h',
+   name:'Sleep &amp; self-care',
+   what:'Sleeping, eating, washing, getting ready. Not pure sleep &mdash; the data does not separate it.',
+   fb:'linear-gradient(150deg,#5a67d8,#8b5cf6)'},
+  {k:'paw',ic:'&#128188;',img:'paid-work',col:COL[1],unit:'h',
+   name:'Paid work',
+   what:'Time on the job or studying, per day, averaged across the week.',
+   fb:'linear-gradient(150deg,#e04b5f,#c2551a)'},
+  {k:'upw',ic:'&#127968;',img:'unpaid-work',col:COL[2],unit:'h',
+   name:'Work at home',
+   what:'Cooking, cleaning, raising children, caring for elders. The shift no payslip counts.',
+   fb:'linear-gradient(150deg,#f08a24,#e0459b)'},
+  {k:'lei',ic:'&#127916;',img:'leisure',col:COL[3],unit:'h',
+   name:'Leisure',
+   what:'Everything you do because you want to: friends, sport, screens, doing nothing.',
+   fb:'linear-gradient(150deg,#0fa598,#4f5bd5)'},
+  {k:'oth',ic:'&#128652;',img:'other',col:COL[4],unit:'h',
+   name:'Getting around',
+   what:'Commuting and everything the survey could not file anywhere else.',
+   fb:'linear-gradient(150deg,#7b8398,#4a5170)'},
+];
 const heat=t=>mix('#f0a824','#d61440',Math.max(0,Math.min(1,t)));
-const top10=[...D.countries].sort((a,b)=>b.wh-a.wh).slice(0,10);
-document.getElementById('workBubbles').innerHTML=top10.map(c=>{
-  const t=(c.wh-whLo)/(whHi-whLo),dia=Math.round(66+t*94);
-  return `<div class="bub" style="--ringc:${heat(t)}">
-    <div class="circ" style="width:${dia}px;height:${dia}px">
-      <img src="assets/flags/${c.iso2}.png" alt="${c.country} flag" loading="lazy"></div>
-    <div class="bnm">${c.country}</div><div class="bvl">${Math.round(c.wh)}h/yr</div></div>`;
-}).join('');
+const fmt=(v,unit)=>unit==='h'?hm(v):Math.round(v)+'h/yr';
+const tgrid=document.getElementById('topicGrid'),trank=document.getElementById('topicRank');
+tgrid.innerHTML=TOPICS.map((t,i)=>`<button class="tcard" type="button" data-i="${i}"
+   style="--img:url('assets/topics/${t.img}.webp');--fb:${t.fb}"
+   aria-label="Ranking for ${t.name.replace(/&amp;/g,'and')}">
+   <i>${t.ic}</i><b>${t.name}</b></button>`).join('');
+
+function showTopic(i){
+  const t=TOPICS[i];
+  [...tgrid.children].forEach((el,n)=>{
+    el.classList.toggle('on',n===i);el.setAttribute('aria-pressed',n===i);});
+  const sorted=[...D.countries].sort((a,b)=>b[t.k]-a[t.k]);
+  const hi=sorted[0][t.k],lo=sorted[sorted.length-1][t.k],last=sorted[sorted.length-1];
+  const top=sorted.slice(0,10);
+  // size across the range of the ten actually shown, not of all 35: the top ten
+  // bunch up near the maximum, so a global scale made every circle the same size
+  const hi10=top[0][t.k],lo10=top[top.length-1][t.k];
+  let k=0;const st=(cls,vars)=>`class="${cls?cls+' st':'st'}" style="--i:${k++}${vars?';'+vars:''}"`;
+  const bubbles=top.map(c=>{
+    const f=(c[t.k]-lo10)/((hi10-lo10)||1),dia=Math.round(72+f*84);
+    return `<div ${st('bub','--ringc:'+heat(f))}>
+      <div class="circ" style="width:${dia}px;height:${dia}px">
+        <img src="assets/flags/${c.iso2}.png" alt="${c.country} flag" loading="lazy"></div>
+      <div class="bnm">${c.country}</div>
+      <div class="bvl">${fmt(c[t.k],t.unit)}</div></div>`;}).join('');
+  trank.classList.remove('go');
+  trank.innerHTML=`
+    <div ${st('trankcap')}><h3>${t.name}</h3><span>${t.what}</span></div>
+    <div ${st('panel')}><div class="bubbles">${bubbles}</div>
+      <p class="tnote">Top ten of 35, biggest circle first. At the other end sits
+        <b>${last.country}</b> with <b>${fmt(lo,t.unit)}</b> &mdash;
+        <b>${t.unit==='h'?hm(hi-lo):Math.round(hi-lo)+'h'}</b> less than
+        ${sorted[0].country}.${t.k==='paw'?` And here is the surprise: this ranking flips the
+        usual assumption. The countries at the top are not the richest ones &mdash; wealth is
+        what lets a nation ease off the clock.`:''}</p>
+    </div>`;
+  void trank.offsetHeight;trank.classList.add('go');
+}
+tgrid.addEventListener('click',e=>{
+  const b=e.target.closest('.tcard');if(!b)return;
+  showTopic(+b.dataset.i);
+  // the ranking lands below the cards; nudge it into view without a jump
+  requestAnimationFrame(()=>trank.scrollIntoView({behavior:reduce?'auto':'smooth',block:'nearest'}));
+});
+// nothing is selected up front: the ranking only appears once a card is clicked
 
 /* ── the double shift: twin charts (retinted with the sky) ── */
 const g=D.gender;
