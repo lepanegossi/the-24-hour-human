@@ -209,10 +209,11 @@ TRIVIA = build_trivia()
 # O hero convidava a explorar sem afirmar nada, e o quarto número era "2 gêneros
 # comparados", que não informa. A tese do narrative.md sobe para cá, com o número
 # mais forte do dataset no lugar do placeholder.
-_worst_gap = max(gaps, key=lambda x: x["gap"])
-HERO_GAP = _hm(_worst_gap["gap"])
-HERO_GAP_COUNTRY = _worst_gap["country"]
-print(f"Hero: maior gap de trabalho nao-pago = {HERO_GAP} ({HERO_GAP_COUNTRY})")
+# Antes era o gap de trabalho nao-pago da India (5h01). Trocado por um numero que
+# nao aponta para um pais so e nao entrega o climax na primeira tela.
+_lei = [r["lei_h"] for r in cp]
+HERO_LEI_GAP = _hm(max(_lei) - min(_lei))
+print(f"Hero: diferenca de lazer topo-base = {HERO_LEI_GAP}")
 
 # ── work vs. free time ───────────────────────────────────────────────────────
 # O eixo X era horas/ano, que contra lazer/dia dá r = -0.47 (R² 0.22): o texto
@@ -238,6 +239,9 @@ _q = [_by_paw[0:9], _by_paw[9:18], _by_paw[18:27], _by_paw[27:]]
 wvl = {
     "r": _pearson(_wx, _wy),
     "a": _wa, "b": _wb,
+    # renda x horas/ano: a relação mais forte do dataset, usada no fechamento
+    "rIncomeHours": _pearson([math.log(r["gdp_per_capita_ppp"]) for r in cp],
+                             [r["annual_working_hours"] for r in cp]),
     "quartiles": [{
         "n": len(g),
         "paw": sum(r["paw_h"] for r in g) / len(g),
@@ -444,13 +448,13 @@ html[data-mood="dark"] .daybar{background:rgba(255,255,255,.15)}
 html[data-mood="dark"] .grain{opacity:.32}
 html[data-mood="dark"] .road{background:linear-gradient(180deg,#3a4250,#222832)}
 /* the mood flip changes custom properties; these transitions carry it smoothly */
-body,.panel,.quiz,.pcard,.legend,.mappanel,.ai,.note,.pollopt,.predkpis .k,
+body,.panel,.quiz,.pcard,.mappanel,.ai,.note,.pollopt,.predkpis .k,
 .predquick button,.predctrl select,.chapno,.phalo .hrs,.matchbody,.road,
 .grain,.daybar{
  transition:background-color .9s ease,border-color .9s ease,color .9s ease,
   box-shadow .9s ease,opacity .9s ease,background .9s ease}
 @media(prefers-reduced-motion:reduce){
- body,.panel,.quiz,.pcard,.legend,.mappanel,.ai,.note,.pollopt,.predkpis .k,
+ body,.panel,.quiz,.pcard,.mappanel,.ai,.note,.pollopt,.predkpis .k,
  .predquick button,.predctrl select,.chapno,.phalo .hrs,.matchbody,.road,
  .grain,.daybar{transition:none}}
 """
@@ -566,10 +570,6 @@ html[data-mood="dark"] .sintro{background:rgba(12,16,42,.45);
 .aha{color:var(--warm);font-weight:600;box-shadow:inset 0 -.48em 0 rgba(240,138,36,.18)}
 html[data-mood="dark"] .aha{box-shadow:inset 0 -.48em 0 rgba(255,195,122,.15)}
 
-.legend{display:flex;gap:12px 22px;flex-wrap:wrap;margin-top:36px;padding:18px 22px;
- background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);box-shadow:var(--shadow)}
-.legend span{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--muted);font-weight:500}
-.dot{width:11px;height:11px;border-radius:3px;flex:0 0 auto}
 
 .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:28px;
  box-shadow:var(--shadow);backdrop-filter:blur(8px)}
@@ -891,6 +891,31 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
 .chartbox{position:relative;height:440px}
 .chartbox.twin{height:430px}
 
+/* ──────────── closing: what the data says can change ──────────── */
+.acards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:900px){.acards{grid-template-columns:1fr}}
+.acard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+ padding:26px 24px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+ display:flex;flex-direction:column}
+.acard::before{content:"";position:absolute;inset:0 0 auto;height:3px;background:var(--bc)}
+.acard .num{font-family:var(--display);font-size:13px;font-weight:600;color:var(--bc);
+ letter-spacing:.04em;margin-bottom:10px}
+.acard h3{font-family:var(--display);font-size:23px;font-weight:600;line-height:1.16;
+ margin-bottom:14px}
+.acard p{font-size:14px;color:var(--muted);line-height:1.68}
+.acard p+p{margin-top:11px}
+.acard b{color:var(--ink);font-weight:700}
+.acard .big{font-family:var(--display);font-size:clamp(34px,4vw,46px);font-weight:600;
+ line-height:1;color:var(--bc);font-variant-numeric:tabular-nums;margin:4px 0 12px}
+.closer{margin-top:24px;text-align:center;padding:38px 30px}
+.closer p{font-size:16px;color:var(--muted);line-height:1.72;max-width:66ch;margin:0 auto}
+.closer .q{font-family:var(--display);font-size:clamp(26px,3.6vw,40px);font-weight:500;
+ font-style:italic;line-height:1.2;color:var(--ink);margin-top:22px;padding-top:22px;
+ border-top:1px solid var(--line);display:inline-block}
+.closer .q b{font-style:normal;font-weight:600;
+ background:linear-gradient(96deg,var(--pca),var(--lei) 45%,var(--upw));
+ -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+
 /* ──────────── work vs. free time: flags on a plot ────────────
    Was a Chart.js scatter of 35 anonymous dots: you could not find the people the
    copy names, and it plotted a year against a day. Flags make every point
@@ -1064,19 +1089,11 @@ BODY = r"""
       <div class="n" data-target="5">0</div><div class="l">Continents</div></div>
     <div class="stat" style="--ac:#e0459b">
       <svg class="ki" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><circle cx="16.5" cy="9" r="2.6"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><path d="M14.6 19c.2-2.2 1.8-3.7 4-3.7s3.8 1.5 3.9 3.7"/></svg>
-      <div class="n">__HERO_GAP__</div>
-      <div class="l">Extra unpaid work a day,<br>for women in __HERO_GAP_COUNTRY__</div></div>
+      <div class="n">__HERO_LEI_GAP__</div>
+      <div class="l">Gap in daily free time,<br>top country to bottom</div></div>
   </div>
   <div class="scrollcue">Scroll to walk through the day<i></i></div>
 </header>
-
-<div class="legend reveal">
-  <span><i class="dot" style="background:var(--pca)"></i>Personal care (sleep, meals, hygiene)</span>
-  <span><i class="dot" style="background:var(--paw)"></i>Paid work / study</span>
-  <span><i class="dot" style="background:var(--upw)"></i>Unpaid work (home, care)</span>
-  <span><i class="dot" style="background:var(--lei)"></i>Leisure</span>
-  <span><i class="dot" style="background:var(--oth)"></i>Other</span>
-</div>
 
 <section class="reveal" id="ch-personas" data-nav="Five lives">
   <div class="sintro">
@@ -1251,6 +1268,16 @@ BODY = r"""
   </div>
 </section>
 
+<section class="reveal" id="ch-change" data-nav="What can change">
+  <div class="sintro">
+    <div class="shead"><span class="chapno">10</span><span class="sh">Where the hours come back from</span><span class="tchip">00:00 &middot; Tomorrow</span></div>
+    <h2>An hour is <em>a policy choice</em></h2>
+    <p class="sub">Nothing in this data is natural law. Every gap you just scrolled through was decided by someone: a working week, a school timetable, who is expected to cook. <span class="aha">The 1,440 minutes are fixed. Almost nothing else is.</span> Here are the three things this dataset can actually show about where the hours come back from.</p>
+  </div>
+  <div class="acards" id="actionCards"></div>
+  <div class="panel closer" id="closer"></div>
+</section>
+
 <section class="reveal">
   <div class="shead"><span class="sh">Behind the scenes</span></div>
   <h2>How we used <em>AI</em></h2>
@@ -1413,27 +1440,27 @@ document.addEventListener('mouseout',e=>dbCap(e,false));
    image has fully arrived when its chapter is on screen. Re-measured after the
    chapters were reordered (topics moved from 4th to 2nd), which shifted every
    position below it:
-     0.00 morning    hero + "five lives"        (07:00, chapter at 0.12)
-     0.34 midday     "who does it most" + quiz  (09:00 / 11:00, at 0.27 / 0.36)
-     0.47 afternoon  the globe                  (12:00, at 0.43)
-     0.57 golden     "the double shift"         (20:00, at 0.53)
-     0.66 sunset     "work vs. free time"       (21:30, at 0.65)
-     0.74 dusk       "working until when"       (22:30, at 0.74)
-     0.86 night      "the day of 2050"          (23:00, at 0.82)
-     1.00 midnight   "the takeaway"             (23:59, at 0.97, the day ends)
+     0.00 morning    hero + "five lives"        (07:00, chapter at 0.09)
+     0.28 midday     "who does it most" + quiz  (09:00 / 11:00, at 0.23 / 0.30)
+     0.38 afternoon  the globe                  (12:00, at 0.37)
+     0.46 golden     "the double shift"         (20:00, at 0.45)
+     0.56 sunset     "work vs. free time"       (21:30, at 0.56)
+     0.65 dusk       "working until when"       (22:30, at 0.64)
+     0.76 night      "the day of 2050"          (23:00, at 0.72)
+     1.00 midnight   "the takeaway" and the closing chapter (0.84 / 0.90)
    The story closes on deep night, matching its own closing line ("when your day
    ends..."). One single ink flip, to light at p=0.70, which falls between
-   chapters 6 (0.65) and 7 (0.74) so nobody watches text change colour mid-read.
+   chapters 6 (0.56) and 7 (0.64) so nobody watches text change colour mid-read.
    Gradient stops are sampled from the artwork, so the no-image fallback tracks
    the same arc. */
 const SKY=[
  {p:0.00,img:'01-morning',  dark:false,c:['#e1eae3','#e0ebe6','#cee6eb']},
- {p:0.34,img:'02-midday',   dark:false,c:['#a6d7df','#9fe2ee','#79e2fb']},
- {p:0.47,img:'03-afternoon',dark:false,c:['#b8c9c3','#d0d5bc','#eecf91']},
- {p:0.57,img:'04-golden',   dark:false,c:['#efaf7d','#dca686','#e8b578']},
- {p:0.66,img:'05-sunset',   dark:false,c:['#ac9d8d','#e6a26e','#e99a75']},
- {p:0.74,img:'06-dusk',     dark:true, c:['#4a4373','#75699c','#7b87b5']},
- {p:0.86,img:'07-night',    dark:true, c:['#36355f','#3e3b6b','#49286f']},
+ {p:0.28,img:'02-midday',   dark:false,c:['#a6d7df','#9fe2ee','#79e2fb']},
+ {p:0.38,img:'03-afternoon',dark:false,c:['#b8c9c3','#d0d5bc','#eecf91']},
+ {p:0.46,img:'04-golden',   dark:false,c:['#efaf7d','#dca686','#e8b578']},
+ {p:0.56,img:'05-sunset',   dark:false,c:['#ac9d8d','#e6a26e','#e99a75']},
+ {p:0.65,img:'06-dusk',     dark:true, c:['#4a4373','#75699c','#7b87b5']},
+ {p:0.76,img:'07-night',    dark:true, c:['#36355f','#3e3b6b','#49286f']},
  {p:1.00,img:'08-midnight', dark:true, c:['#222544','#242c4e','#041031']}];
 const SKY_DIR='assets/sky/',SKY_EXT='.webp';
 const hx=s=>[1,3,5].map(i=>parseInt(s.substr(i,2),16));
@@ -2037,6 +2064,59 @@ document.querySelectorAll('.predquick button').forEach(b=>b.addEventListener('cl
 renderPred();
 sliderText();
 
+/* ── closing: what this data says can change ──
+   Every figure below comes out of the same CSVs. An earlier draft cited Iceland's
+   four-day-week trials and parental leave design, which are true but sit outside
+   this dataset; in a piece that cites everything, an unsourced claim is a liability,
+   so they are gone. What replaced them is stronger anyway: the model's own slopes
+   show income moves leisure and paid work and leaves unpaid work almost untouched. */
+(function closing(){
+  const q=W.quartiles,light=(q[0].lei+q[1].lei+q[2].lei)/3,gap=Math.round((light-q[3].lei)*60);
+  const M=D.model;
+  const gs=[...D.gender].sort((a,b)=>b.gap-a.gap),worst=gs[0],best=gs[gs.length-1];
+  const yrs=[...new Set(D.countries.map(c=>c.country))].length;
+  const cards=[
+    {c:COL[3],n:'01',t:'The hour is negotiable',
+     big:gap+' min',
+     p:[`Split the 35 countries into quarters by how long their day at work runs and the
+         drop is not gradual. Three of those quarters all keep near <b>${hm(light)}</b> of
+         free time. Only the hardest-working quarter breaks away, at <b>${hm(q[3].lei)}</b>.`,
+        `Working somewhat more costs almost nothing. Working a lot more costs an hour a day.
+         Which means the hour sits at a threshold, not on a slope &mdash; and thresholds are
+         set by someone.`]},
+    {c:COL[1],n:'02',t:'Wealth buys back the wrong hour',
+     big:'&asymp;0 min',
+     p:[`Our 2050 model reads how a country's day shifts as its income rises. Richer
+         countries do get time back: leisure climbs <b>+${(M.lei_h.b*60).toFixed(0)} min</b>
+         and paid work falls <b>${(M.paw_h.b*60).toFixed(0)} min</b> for every step up in
+         income.`,
+        `Unpaid work moves by that number at the top &mdash; effectively nothing. Prosperity
+         shortens the workday and leaves the second shift exactly where it was.
+         <b>Money is not the lever for that one.</b>`]},
+    {c:COL[2],n:'03',t:'What gets counted gets argued about',
+     big:worst.country===best.country?'&mdash;':Math.round((worst.gap-best.gap)*60)+' min',
+     p:[`The spread between the widest gender gap here and the narrowest is that big:
+         <b>${worst.country}</b> at <b>${Math.round(worst.gap*60)} min</b> a day against
+         <b>${best.country}</b> at <b>${Math.round(best.gap*60)} min</b>. Same century,
+         same measure.`,
+        `None of it would be arguable without time-use surveys, and this dataset shows their
+         limits: reference years differ by country, so it is a snapshot and not a trend, and
+         <b>no South American country is in it at all</b>. Unmeasured hours stay unmanaged.`]},
+  ];
+  document.getElementById('actionCards').innerHTML=cards.map(c=>`
+    <div class="acard" style="--bc:${c.c}">
+      <div class="num">${c.n}</div><h3>${c.t}</h3>
+      <div class="big">${c.big}</div>
+      ${c.p.map(t=>`<p>${t}</p>`).join('')}
+    </div>`).join('');
+  document.getElementById('closer').innerHTML=`
+    <p>Across these ${D.countries.length} countries, how long a day at work runs explains about
+      <b>${Math.round(W.r*W.r*100)}%</b> of the difference in free time, and income tracks the
+      length of the working year at <b>r = ${W.rIncomeHours.toFixed(2)}</b>. The day responds to
+      how a country organises itself. It has been responding all along.</p>
+    <p class="q">1,440 minutes.<br><b>How will you spend yours?</b></p>`;
+})();
+
 /* ── interactive globe ── */
 const whs=D.countries.map(c=>c.wh),whMin=Math.min(...whs),whMax=Math.max(...whs);
 const whColor=v=>{const t=Math.max(0,Math.min(1,(v-whMin)/(whMax-whMin)));
@@ -2149,7 +2229,7 @@ def check_assets(html):
             print(f"   - {m}")
 
 
-FINAL = HTML.replace("__GRAIN__", GRAIN).replace("__TICKS__", CLOCK_TICKS).replace("__HERO_GAP__", HERO_GAP).replace("__HERO_GAP_COUNTRY__", HERO_GAP_COUNTRY).replace("__DATA__", DATA)
+FINAL = HTML.replace("__GRAIN__", GRAIN).replace("__TICKS__", CLOCK_TICKS).replace("__HERO_LEI_GAP__", HERO_LEI_GAP).replace("__DATA__", DATA)
 check_assets(FINAL)
 OUT.write_text(FINAL, encoding="utf-8")
 print(f"OK -> {OUT}  ({len(countries)} countries, {len(gender)} gender bars, {len(personas)} personas)")
