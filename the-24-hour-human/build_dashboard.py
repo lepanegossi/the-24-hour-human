@@ -943,7 +943,7 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
  box-shadow:0 4px 12px -5px rgba(20,26,51,.6);transition:transform .25s;cursor:default}
 .scmk:hover{transform:scale(1.4);z-index:6}
 .scmk img{width:100%;height:100%;object-fit:cover;display:block}
-.scmk.p{border-color:#ffcf33;border-width:3px;
+.scmk.p{width:46px;height:46px;margin:-23px 0 0 -23px;border-color:#ffcf33;border-width:3px;
  box-shadow:0 0 0 3px rgba(255,207,51,.32),0 4px 12px -5px rgba(20,26,51,.6);z-index:4}
 .scylab,.scxlab{position:absolute;font-size:11px;color:var(--muted);
  font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -1198,7 +1198,7 @@ BODY = r"""
   <div class="sintro">
   <div class="shead"><span class="chapno">06</span><span class="sh">The trade-off</span><span class="tchip">21:30 &middot; Evening</span></div>
   <h2>Work vs. <em>free time</em></h2>
-  <p class="sub">Remember our five friends? Every flag is one country, placed by how long its day at work runs and how much of the day is left for itself. <span class="aha">The harder a country works, the less it plays</span> &mdash; and you can watch the flags drift down as they move right. Camille takes it slow, Sof&iacute;a barely catches a break, and our five are ringed in gold so you can find them.</p>
+  <p class="sub">Remember our five friends? Every flag is one country, placed by how long its day at work runs and how much of the day is left for itself. <span class="aha">The harder a country works, the less it plays</span> &mdash; and you can watch the flags drift down as they move right. Camille takes it slow, Sof&iacute;a barely catches a break &mdash; and our five appear as their own faces, so you can spot them without hunting.</p>
   </div>
   <div class="panel">
     <div class="scplot" id="scPlot">
@@ -1972,9 +1972,13 @@ function drawWorkVsLeisure(){
   g+=`<svg class="sctrend" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
       <line x1="0" y1="${(100-py(ly0)).toFixed(2)}" x2="100" y2="${(100-py(ly1)).toFixed(2)}"
         vector-effect="non-scaling-stroke"/></svg>`;
-  g+=D.countries.map(c=>`<span class="scmk${personaISO.includes(c.iso3)?' p':''}"
-      style="left:${px(c.paw)}%;bottom:${py(c.lei)}%" data-i="${c.iso3}">
-      <img src="assets/flags/${c.iso2}.png" alt="" loading="lazy"></span>`).join('');
+  g+=D.countries.map(c=>{
+    const pp=D.personas.find(x=>x.iso3===c.iso3);
+    const img=pp
+      ? `<img src="${pp.avatar}" onerror="this.onerror=null;this.src='${pp.avatarAlt}'" alt="" loading="lazy">`
+      : `<img src="assets/flags/${c.iso2}.png" alt="" loading="lazy">`;
+    return `<span class="scmk${pp?' p':''}" style="left:${px(c.paw)}%;bottom:${py(c.lei)}%"
+      data-i="${c.iso3}">${img}</span>`;}).join('');
   el.insertAdjacentHTML('afterbegin',g);
   document.getElementById('scR').innerHTML=
     `Trend across all 35 &middot; correlation <b>r = ${W.r.toFixed(2)}</b>, so how long a
@@ -2004,7 +2008,9 @@ scPlotEl.addEventListener('mouseover',e=>{
   const m=e.target.closest('.scmk');if(!m)return;
   const c=D.countries.find(x=>x.iso3===m.dataset.i);
   scHov.className='schov';
-  scHov.innerHTML=`${c.flag} <b>${c.country}</b> &middot; ${hm(c.paw)} of paid work &middot; ${hm(c.lei)} of leisure`;
+  const pp=D.personas.find(x=>x.iso3===c.iso3);
+  scHov.innerHTML=`${c.flag} <b>${pp?pp.name+"'s "+c.country:c.country}</b>
+    &middot; ${hm(c.paw)} of paid work &middot; ${hm(c.lei)} of leisure`;
 });
 scPlotEl.addEventListener('mouseout',e=>{
   if(!e.target.closest('.scmk'))return;
