@@ -329,7 +329,9 @@ CSS = r"""
  --accent:#7c4ded; --hot:#fd297b; --warm:#ad5a0d;
  --women:#e0459b; --men:#4f5bd5;
  /* surfaces & ink (light act) */
- --ink:#141a33; --muted:#5a6285;
+ /* --muted medido sobre o ceu ilustrado, nao sobre branco: o valor antigo
+    (#5a6285) falhava em 7 dos 8 ceus, chegando a 2.44:1 no sunset */
+ --ink:#141a33; --muted:#4d5578;
  --card:#ffffff; --card-2:#f7f9ff; --line:rgba(20,26,51,.10);
  --shadow:0 10px 28px -14px rgba(20,26,51,.24);
  --shadow-lg:0 28px 64px -24px rgba(20,26,51,.36);
@@ -432,7 +434,7 @@ section{margin-top:112px}
 
 /* ───────── night mood: the ink inverts once the sky goes dark ───────── */
 html[data-mood="dark"]{
- --ink:#f3f5ff; --muted:#a8afd2; --accent:#a78bfa;
+ --ink:#f3f5ff; --muted:#c3c9e6; --accent:#a78bfa;
  --card:rgba(255,255,255,.075); --card-2:rgba(255,255,255,.045);
  --line:rgba(255,255,255,.14);
  --shadow:0 18px 44px -20px rgba(0,0,0,.6);
@@ -548,6 +550,19 @@ h2{font-family:var(--display);font-weight:400;font-size:clamp(30px,4.6vw,50px);l
 h2 em{font-style:italic;font-variation-settings:"WONK" 1}
 .sub{font-size:16.5px;color:var(--muted);max-width:74ch;margin-bottom:28px}
 .sub b{color:var(--ink);font-weight:600}
+/* Narrative text sat directly on the illustrated sky, which is a contrast
+   gamble: measured over the eight skies, body copy failed on seven of them.
+   The intro block now gets the same kind of surface the chart panels have, so
+   legibility no longer depends on which sky happens to be behind it.
+   Worst case after this: 6.09:1 in light mode, 8.14:1 in dark. */
+.sintro{background:rgba(255,255,255,.78);backdrop-filter:blur(10px) saturate(1.08);
+ border:1px solid rgba(255,255,255,.72);border-radius:var(--r);
+ padding:24px 28px 2px;margin-bottom:26px;box-shadow:var(--shadow)}
+.sintro .sub{margin-bottom:22px}
+.sintro h2{margin-top:4px}
+html[data-mood="dark"] .sintro{background:rgba(12,16,42,.68);
+ border-color:rgba(255,255,255,.13)}
+@media(max-width:640px){.sintro{padding:20px 20px 2px}}
 .aha{color:var(--warm);font-weight:600;box-shadow:inset 0 -.48em 0 rgba(240,138,36,.18)}
 html[data-mood="dark"] .aha{box-shadow:inset 0 -.48em 0 rgba(255,195,122,.15)}
 
@@ -884,7 +899,14 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
  border-left:1px solid var(--line);border-bottom:1px solid var(--line)}
 .scplot .gl{position:absolute;left:0;right:0;height:1px;background:var(--line);opacity:.6}
 .scplot .gv{position:absolute;top:0;bottom:0;width:1px;background:var(--line);opacity:.6}
-.sctrend{position:absolute;inset:0;overflow:visible;pointer-events:none}
+/* overflow:hidden, not visible: where the regression line leaves the axis range
+   it was being drawn outside the panel and down across the page */
+/* width/height must be explicit: an <svg> carrying a viewBox is a replaced
+   element with an intrinsic aspect ratio, so inset:0 sets the width and then
+   derives the height from that ratio instead of the inset. It came out 997x997
+   inside a 998x400 plot, which threw the trend line 350px past the panel. */
+.sctrend{position:absolute;top:0;left:0;width:100%;height:100%;
+ overflow:hidden;pointer-events:none}
 .sctrend line{stroke:var(--accent);stroke-width:2.5;stroke-dasharray:7 6;opacity:.7}
 .scmk{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;
  overflow:hidden;border:2px solid var(--card);background:#eef1ff;
@@ -1057,25 +1079,31 @@ BODY = r"""
 </div>
 
 <section class="reveal" id="ch-personas" data-nav="Five lives">
+  <div class="sintro">
   <div class="shead"><span class="chapno">01</span><span class="sh">Meet our humans</span><span class="tchip">07:00 &middot; Morning</span></div>
   <h2>One day, <em>five lives</em></h2>
   <p class="sub">Meet our neighbors from around the world, one from each continent. Here's where you'll see how a single day can look completely different depending on where you stand, and how that everyday routine really plays out across the globe. What could each place add to your own day? (Each ring is one real 24-hour day; hover to explore the hours.)</p>
+  </div>
   <div class="pgrid" id="personaGrid"></div>
   <div class="pdetail" id="personaDetail" tabindex="-1" hidden></div>
 </section>
 
 <section class="reveal" id="ch-topics" data-nav="Who does it most">
+  <div class="sintro">
   <div class="shead"><span class="chapno">02</span><span class="sh">The first surprise</span><span class="tchip">09:00 &middot; Morning</span></div>
   <h2>Who does it <em>most?</em></h2>
   <p class="sub">The same 1,440 minutes, split five ways &mdash; and every one of those slices has a world champion. <span class="aha">Pick a piece of the day</span> to see which countries spend the most of it, and which one sits at the other end. Some rankings are exactly what you would guess. One of them is the first real surprise in this data.</p>
+  </div>
   <div class="tgrid" id="topicGrid"></div>
   <div class="trank" id="topicRank"></div>
 </section>
 
 <section class="reveal" id="ch-quiz" data-nav="Your match">
+  <div class="sintro">
   <div class="shead"><span class="chapno">03</span><span class="sh">Now your turn</span><span class="tchip">11:00</span></div>
   <h2>Which human <em>are you?</em></h2>
   <p class="sub">Now that you've met them, let's figure out your ideal day. Slide each bar to what feels best for you: give more time to what matters most, and less to what matters least. Think about what motivates you and makes you happiest. Then, <span class="aha">just like Tinder, we'll reveal your perfect match:</span> which of the 35 countries around the world would give you your 'perfect day'. So... who's your match?</p>
+  </div>
   <div class="quiz">
     <div class="qrow"><label for="q_pca">Sleep, meals &amp; self-care</label>
       <input type="range" id="q_pca" min="0" max="16" step="0.5" value="10" aria-label="Hours on sleep, meals and self-care"><span class="qval" id="v_pca">10h</span></div>
@@ -1100,9 +1128,11 @@ BODY = r"""
 </section>
 
 <section class="reveal" id="ch-globe" data-nav="The globe">
+  <div class="sintro">
   <div class="shead"><span class="chapno">04</span><span class="sh">Explore all 35</span><span class="tchip">12:00 &middot; Midday</span></div>
   <h2>Where people <em>spend their time</em></h2>
   <p class="sub">So, how's the world out there? Each dot is a country we mapped, <span class="aha">colored from yellow (fewer work hours) to red (more) across the year</span>. Spin it and a pattern shows up: the busy red dots cluster where incomes are lower, while the calmer yellow ones sit among the wealthy. Find the country you're curious about and dive deep: click it to open its 24-hour day. (It's a little sad, but you'll spot a gap over South America. The honest limit of our data.)</p>
+  </div>
   <div class="mapwrap">
     <div id="globe"></div>
     <div class="mappanel" id="mapPanel">
@@ -1123,9 +1153,11 @@ BODY = r"""
 
 <div class="act" id="ch-shift" data-nav="The double shift"><div class="inner">
 <section class="reveal">
+  <div class="sintro">
   <div class="shead"><span class="chapno">05</span><span class="sh">The heart of the story</span><span class="tchip">20:00 &middot; Night</span></div>
   <h2>The <em>double shift</em></h2>
   <p class="sub">The double shift, and one stubborn question: why is it almost always women? There's a second shift, the invisible one: cooking, cleaning, raising children, caring for elders. It never shows on a payslip, it sits outside policy indicators, and it stays out of the conversation. Around the world it lands overwhelmingly on women. <span class="aha">In India, women do about five more hours of unpaid work every single day than men.</span> Turkey, Portugal and Mexico aren't far behind, while only the Nordics come close to sharing it evenly. And the penalty is double: those same women also get less time to rest. In Portugal and Italy, men enjoy almost an hour and a half more leisure every single day. Calling women strong and empowered doesn't erase those extra hours. This is the part of the day the economy never counts, the part that shapes millions of lives most, and it's long past time we talked about it as a society.</p>
+  </div>
   <div class="twinwrap">
     <div class="panel"><div class="tcap">&#127968; Unpaid work / day <span>women do more</span></div><div class="chartbox twin"><canvas id="genderChart"></canvas></div></div>
     <div class="panel"><div class="tcap">&#128715; Leisure / day <span>men get more</span></div><div class="chartbox twin"><canvas id="leisureChart"></canvas></div></div>
@@ -1136,9 +1168,11 @@ BODY = r"""
 <div class="wrap">
 
 <section class="reveal" id="ch-tradeoff" data-nav="The trade-off">
+  <div class="sintro">
   <div class="shead"><span class="chapno">06</span><span class="sh">The trade-off</span><span class="tchip">21:30 &middot; Evening</span></div>
   <h2>Work vs. <em>free time</em></h2>
   <p class="sub">Remember our five friends? Every flag is one country, placed by how long its day at work runs and how much of the day is left for itself. <span class="aha">The harder a country works, the less it plays</span> &mdash; and you can watch the flags drift down as they move right. Camille takes it slow, Sof&iacute;a barely catches a break, and our five are ringed in gold so you can find them.</p>
+  </div>
   <div class="panel">
     <div class="scplot" id="scPlot">
       <span class="scaxisname y">Leisure</span>
@@ -1153,9 +1187,11 @@ BODY = r"""
 </section>
 
 <section class="reveal" id="ch-retire" data-nav="Working until when">
+  <div class="sintro">
   <div class="shead"><span class="chapno">07</span><span class="sh">A lifetime of days</span><span class="tchip">22:30</span></div>
   <h2>Working <em>until when?</em></h2>
   <p class="sub">Do you already know when you'll stop working? With day after day of work piling up over the years, at some point that question arrives. Every choice in your day leads to the moment you'll have to decide between two worlds. <span class="aha">Or the blend of both?</span> Across the world, that exit comes nearly twelve years apart: South Korea keeps going until 72, while Luxembourg and France stop at barely 60.</p>
+  </div>
   <div class="panel road-panel">
     <div class="rsigns">
       <div class="rsign left">&#8592; RETIRE<small>as early as 60</small></div>
@@ -1170,9 +1206,11 @@ BODY = r"""
 
 <div class="act" id="ch-2050" data-nav="The day of 2050"><div class="inner">
 <section class="reveal">
+  <div class="sintro">
   <div class="shead"><span class="chapno">08</span><span class="sh">Predictive model</span><span class="tchip">23:00 &middot; Tomorrow</span></div>
   <h2>&#129302; The day of <em>2050</em></h2>
   <p class="sub">So what happens if the world grows richer? A simple model learns, from the link between income and time use across all 35 countries, how a nation's day shifts as it grows wealthier, then projects a country's 24-hour day into a more prosperous future. The good news: prosperity tends to hand back free time. The catch: it barely touches the second shift. <span class="aha">Pick a country and a growth scenario.</span> <b>Illustrative model</b>, not a time forecast; the data is a single snapshot, not a time series.</p>
+  </div>
   <div class="panel">
     <div class="predctrl">
       <label>Country <select id="predCountry"></select></label>
@@ -1198,9 +1236,11 @@ BODY = r"""
 <div class="wrap tail">
 
 <section class="reveal" id="ch-takeaway" data-nav="The takeaway">
+  <div class="sintro">
   <div class="shead"><span class="chapno">09</span><span class="sh">The takeaway</span><span class="tchip">23:59 &middot; Day's end</span></div>
   <h2>At the end of the day, <em>how do you feel?</em></h2>
   <p class="sub" style="font-size:17px;max-width:70ch">When your day ends, is it a feeling of a job well done, or of pure exhaustion? Your gender, your culture, and the country you live in can tip that balance, for better or worse. A single day is such a short thing next to a whole life. For the life you want now, and the one you want later, have you ever stopped to think about what really matters? <b>How do you live your day?</b></p>
+  </div>
   <div class="poll" id="poll">
     <div class="pollq">When your day ends, how do you usually feel?</div>
     <button class="pollopt" data-k="acc"><span class="fill"></span><span class="lbl">&#128524; Accomplished</span><span class="pct"></span></button>
