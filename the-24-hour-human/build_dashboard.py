@@ -1429,12 +1429,15 @@ const TOPICS=[
    name:'Leisure',
    what:'Everything you do because you want to: friends, sport, screens, doing nothing.',
    fb:'linear-gradient(150deg,#0fa598,#4f5bd5)'},
-  {k:'oth',ic:'&#128652;',img:'other',col:COL[4],unit:'h',
+  {k:'oth',ic:'&#128652;',img:'getting-around',col:COL[4],unit:'h',
    name:'Getting around',
    what:'Commuting and everything the survey could not file anywhere else.',
    fb:'linear-gradient(150deg,#7b8398,#4a5170)'},
+  // "The whole year" named a unit of time while the other five name an activity,
+  // so it read as an odd one out. This names the thing and the timeframe, and the
+  // point is telling it apart from the daily "Paid work" card.
   {k:'wh',ic:'&#128197;',img:'work-year',col:'#8b5cf6',unit:'H',
-   name:'The whole year',
+   name:'A year of work',
    what:'Not a day but a year: hours worked per worker, all twelve months of it.',
    fb:'linear-gradient(150deg,#8b5cf6,#e0459b)'},
 ];
@@ -1679,5 +1682,34 @@ HTML = f"""<!DOCTYPE html>
 </html>
 """
 
-OUT.write_text(HTML.replace("__GRAIN__", GRAIN).replace("__TICKS__", CLOCK_TICKS).replace("__DATA__", DATA), encoding="utf-8")
+def check_assets(html):
+    """Avisa sobre imagem/vídeo referenciado que não existe na pasta.
+
+    Todo asset aqui tem fallback (gradiente no card, gradiente no céu, SVG antigo
+    no avatar, placeholder no vídeo). Isso é bom em produção e ruim no
+    desenvolvimento: um arquivo renomeado simplesmente não aparece, sem erro
+    nenhum. Este check torna a falta visível na hora do build.
+    """
+    import re as _re
+    missing = []
+    for name in _re.findall(r"img:'([\w-]+)'", html):
+        if not any((ROOT / "assets" / d / f"{name}.webp").exists() for d in ("sky", "topics")):
+            missing.append(f"assets/{{sky,topics}}/{name}.webp")
+    for p in personas:
+        iso = p["iso3"].lower()
+        if not (ROOT / "assets" / "avatars" / f"{iso}.webp").exists():
+            missing.append(f"assets/avatars/{iso}.webp (cai no .svg antigo)")
+        if not (ROOT / p["video"]).exists():
+            missing.append(f"{p['video']} (mostra placeholder)")
+        elif not (ROOT / p["videoPoster"]).exists():
+            missing.append(f"{p['videoPoster']} (video sem thumbnail)")
+    if missing:
+        print(f"AVISO: {len(missing)} asset(s) ausente(s), usando fallback:")
+        for m in missing:
+            print(f"   - {m}")
+
+
+FINAL = HTML.replace("__GRAIN__", GRAIN).replace("__TICKS__", CLOCK_TICKS).replace("__DATA__", DATA)
+check_assets(FINAL)
+OUT.write_text(FINAL, encoding="utf-8")
 print(f"OK -> {OUT}  ({len(countries)} countries, {len(gender)} gender bars, {len(personas)} personas)")
