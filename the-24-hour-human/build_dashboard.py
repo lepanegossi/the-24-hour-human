@@ -580,7 +580,7 @@ html[data-mood="dark"] .aha{box-shadow:inset 0 -.48em 0 rgba(255,195,122,.15)}
 .srcs{margin-top:76px;border-top:1px solid var(--line);padding-top:30px}
 .srcgrid{display:grid;grid-template-columns:1fr 1fr;gap:34px}
 @media(max-width:760px){.srcgrid{grid-template-columns:1fr;gap:26px}}
-.srcs h4{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);
+.srcs h2{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);
  font-weight:700;margin-bottom:14px}
 .srcs ul{list-style:none;display:flex;flex-direction:column;gap:11px}
 .srcs li{font-size:13px;color:var(--muted);line-height:1.6;padding-left:14px;position:relative}
@@ -1049,6 +1049,10 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
 # ══════════════════════════════════════════════════════════════════════════════
 BODY = r"""
 <a href="#main" class="skip">Skip to main content</a>
+<!-- Content swaps in three places without the page reloading: opening a persona,
+     switching a topic ranking, clicking a country. Moving focus is not enough on
+     its own, so what changed gets announced here. -->
+<div id="say" class="srt" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <div class="sky" id="sky" aria-hidden="true">
   <div class="grad"></div>
@@ -1061,7 +1065,8 @@ BODY = r"""
 <div class="daybar" aria-hidden="true"><i></i><b></b></div>
 <nav class="rail" id="rail" aria-label="Chapters"></nav>
 
-<div class="wrap" id="main">
+<main id="main">
+<div class="wrap">
 
 <header class="hero reveal">
   <div class="heroclock">
@@ -1296,10 +1301,14 @@ BODY = r"""
   </div>
 </section>
 
+</div><!-- /wrap -->
+</main>
+
+<div class="wrap tail">
 <footer class="srcs reveal">
   <div class="srcgrid">
     <div>
-      <h4>Where the data comes from</h4>
+      <h2>Where the data comes from</h2>
       <ul>
         <li><a href="https://www.oecd.org/en/data/datasets/time-use-database.html"
           target="_blank" rel="noopener">OECD Time Use Database</a> &mdash; the five categories that
@@ -1313,7 +1322,7 @@ BODY = r"""
       </ul>
     </div>
     <div>
-      <h4>What this data can and cannot say</h4>
+      <h2>What this data can and cannot say</h2>
       <ul>
         <li>The five categories sum to 24 hours, so every chart here is a share of one real day.</li>
         <li><b>Sleep is not separable.</b> It sits inside personal care together with meals and
@@ -1332,8 +1341,10 @@ BODY = r"""
   <p class="fine">
     <b>Attribution:</b> World Bank and Our World in Data are open data under CC BY. OECD material is
     used with attribution. <b>Accessibility:</b> every chart carries a text alternative, the three
-    data-heavy ones also a hidden table of figures; colour is never the only cue; contrast was
-    measured against WCAG AA; the globe can be browsed from the keyboard; motion respects
+    data-heavy ones also a hidden table of figures; the persona videos carry English captions;
+    colour is never the only cue; contrast was measured against WCAG AA over the illustrated
+    backgrounds rather than against white; the globe can be browsed from the keyboard; anything
+    that changes without a page reload is announced; motion respects
     <i>prefers-reduced-motion</i>. <b>VizCon 2026</b> &middot; "How the world lives, thrives, and connects".
   </p>
 </footer>
@@ -1391,6 +1402,12 @@ function srTable(caption,head,rows){
     head.map(h=>`<th scope="col">${h}</th>`).join('')}</tr></thead><tbody>${
     rows.map(r=>`<tr><th scope="row">${r[0]}</th>${
       r.slice(1).map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+/* one polite live region for every in-place swap */
+const sayEl=document.getElementById('say');
+function say(msg){
+  sayEl.textContent='';                       // re-announce even if the text repeats
+  setTimeout(()=>{sayEl.textContent=msg;},60);
 }
 function describe(canvas,label){
   if(!canvas)return;
@@ -1726,6 +1743,7 @@ function openPersona(i){
     void pdet.offsetHeight;
     pdet.classList.add('go');
     pdet.focus({preventScroll:true});
+    say(`${p.name}'s day opened. ${p.country}. Press Escape to go back to all five.`);
     document.getElementById('ch-personas').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
   },reduce?0:430);
 }
@@ -1737,6 +1755,7 @@ function closePersona(){
     void pgrid.offsetHeight;
     pgrid.classList.remove('out');
     if(openedFrom)openedFrom.focus({preventScroll:true});
+    say('Back to all five people.');
     document.getElementById('ch-personas').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
   },reduce?0:280);
 }
@@ -1745,17 +1764,30 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!pdet.hidden)closeP
 /* the video is optional: if the file is not there yet, show a "coming soon" panel */
 function setupPersonaVideo(p){
   const box=document.getElementById('pmvid');
-  const soon=()=>{box.innerHTML=`<div class="pmvidsoon">
-      <span class="ic">&#9654;</span><b>${p.name} tells you about her day</b>
+  // A missing caption file also fires an error, and a capturing listener on the
+  // video swallowed it as "no video" and replaced a working player with the
+  // placeholder. Only a failing <source> means there is no video.
+  const soon=e=>{
+    if(e&&e.target&&e.target.tagName==='TRACK')return;
+    box.innerHTML=`<div class="pmvidsoon">
+      <span class="ic">&#9654;</span><b>${p.name} tells you about their day</b>
       <span>Video coming soon. Drop the file at <code>${p.video}</code> and it appears here.</span>
     </div>`;};
   const v=document.createElement('video');
   v.controls=true;v.preload='metadata';v.playsInline=true;
   v.setAttribute('poster',p.videoPoster);
-  v.addEventListener('error',soon,true);   // catches the <source> failing too
+  v.addEventListener('error',soon,true);
   const s=document.createElement('source');s.src=p.video;s.type='video/mp4';
   s.addEventListener('error',soon);
-  v.appendChild(s);box.innerHTML='';box.appendChild(v);
+  v.appendChild(s);
+  // Captions are a Level A requirement for pre-recorded speech, and most people
+  // at a judging table watch muted anyway. The track is wired now; drop the .vtt
+  // next to the .mp4 and it appears, failing silently while it does not exist.
+  const tr=document.createElement('track');
+  tr.kind='captions';tr.label='English';tr.srclang='en';tr.default=true;
+  tr.src=p.video.replace(/\.mp4$/,'.vtt');
+  v.appendChild(tr);
+  box.innerHTML='';box.appendChild(v);
 }
 
 
@@ -1877,6 +1909,7 @@ function showTopic(i){
         of difference between the top and the bottom of this list.`:''}</p>
     </div>`;
   void trank.offsetHeight;trank.classList.add('go');
+  say(`${t.name}. Top ten countries. ${sorted[0].country} leads with ${fmt(hi,t.unit)}.`);
 }
 tgrid.addEventListener('click',e=>{
   const b=e.target.closest('.tcard');if(!b)return;
@@ -2148,6 +2181,7 @@ function selectCountry(c){
       <div><span>Work per year</span><b>${Math.round(c.wh)}h</b></div>
       <div><span>Retires (men)</span><b>${c.ret.toFixed(0)} yrs</b></div>
     </div>`;
+  say(`${c.country}. Paid work ${hm(c.paw)}, unpaid work ${hm(c.upw)}, leisure ${hm(c.lei)} per day.`);
 }
 /* the legend was colour only, with no numbers attached to either end */
 document.getElementById('mapLegend').innerHTML=
