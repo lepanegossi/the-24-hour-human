@@ -722,6 +722,11 @@ html[data-mood="dark"] .pmnum{background:rgba(255,255,255,.05)}
 .pmnum .d.up{color:#0f8f7f}.pmnum .d.dn{color:#d1445c}.pmnum .d.eq{color:var(--muted)}
 html[data-mood="dark"] .pmnum .d.up{color:#31d3bd}
 html[data-mood="dark"] .pmnum .d.dn{color:#ff8095}
+/* the four numbers that carry a comparison stay as cards; work-per-year, income
+   and life satisfaction move into one line of context. Eight cards was clutter
+   and half of them had no delta to compare against. */
+.pmctx{margin-top:15px;font-size:13px;line-height:1.65;color:var(--muted)}
+.pmctx b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
 .pmnote{margin-top:16px;font-size:13px;line-height:1.6;color:var(--muted);
  border-left:2px solid var(--women);padding-left:14px}
 .pmnote b{color:var(--ink);font-weight:700}
@@ -1637,9 +1642,17 @@ D.personas.forEach((p,i)=>{
 const pgrid=document.getElementById('personaGrid'),pdet=document.getElementById('personaDetail');
 let openedFrom=null;
 const A=D.avg;
+/* invert=true -> lower is better, false -> higher is better, null -> no judgement.
+   Unpaid work uses null on purpose: a country doing less of it is not doing
+   better, it has usually just handed more of it to one half of the population. */
 function delta(v,ref,unit,invert){
   const d=v-ref;
   if(Math.abs(d)<(unit==='h'?0.09:0.5))return '<div class="d eq">on the average</div>';
+  if(invert===null){
+    const t=unit==='h'?`${d>0?'+':'-'}${Math.round(Math.abs(d)*60)} min`
+                      :`${d>0?'+':'-'}${Math.abs(d).toFixed(0)}`;
+    return `<div class="d eq">${t} vs average</div>`;
+  }
   const better=invert?d<0:d>0;
   const txt=unit==='h'?`${d>0?'+':'-'}${Math.round(Math.abs(d)*60)} min`
                       :`${d>0?'+':'-'}${Math.abs(d).toFixed(unit==='y'?1:0)}${unit==='y'?' yrs':'h'}`;
@@ -1690,14 +1703,14 @@ function openPersona(i){
     <div ${st('panel')}><h4>${p.country} vs the 35 countries</h4>
       <div class="pmnums">
         ${num(COL[1],hm(p.clock[1]),'Paid work / day',delta(p.clock[1],A.paw,'h',true))}
+        ${num(COL[2],hm(p.clock[2]),'Unpaid work / day',delta(p.clock[2],A.upw,'h',null))}
         ${num(COL[3],hm(p.clock[3]),'Leisure / day',delta(p.clock[3],A.lei,'h',false))}
-        ${num(COL[2],hm(p.clock[2]),'Unpaid work / day',delta(p.clock[2],A.upw,'h',true))}
-        ${num(COL[0],hm(p.clock[0]),'Personal care / day',delta(p.clock[0],A.pca,'h',false))}
-        ${num('',Math.round(p.wh)+'h','Work per year',delta(p.wh,A.wh,'H',true))}
         ${num('',p.ret.toFixed(0),'Retires (men)',delta(p.ret,A.ret,'y',true))}
-        ${num('',p.life.toFixed(1),'Life satisfaction /10','')}
-        ${num('','$'+Math.round(p.gdp/1000)+'k','GDP/capita PPP','')}
       </div>
+      <p ${st('pmctx')}>Personal care and the rest of the day are in the breakdown above.
+        ${p.country} works <b>${Math.round(p.wh)} hours a year</b>, earns about
+        <b>$${Math.round(p.gdp/1000)}k</b> per person, and rates its life
+        <b>${p.life.toFixed(1)} out of 10</b>.</p>
       ${gapMin>0?`<p ${st('pmnote')}>The second shift, at home: in ${p.country} women do about
         <b>${gapMin} minutes more unpaid work a day</b> than men
         (<b>${hm(p.upwF)}</b> against <b>${hm(p.upwM)}</b>).</p>`:``}
