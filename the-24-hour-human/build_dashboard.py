@@ -1418,8 +1418,11 @@ const TOPICS=[
    name:'Paid work',
    what:'Time on the job or studying, per day, averaged across the week.',
    fb:'linear-gradient(150deg,#e04b5f,#c2551a)'},
-  {k:'upw',ic:'&#127968;',img:'unpaid-work',col:COL[2],unit:'h',
-   name:'Work at home',
+  // "Housework" reads better but the OECD category also covers caring for
+  // children and elders, which is the half the double-shift chapter turns on.
+  // "Home & care" keeps both without going dry.
+  {k:'upw',ic:'&#127968;',img:'housework',col:COL[2],unit:'h',
+   name:'Home &amp; care',
    what:'Cooking, cleaning, raising children, caring for elders. The shift no payslip counts.',
    fb:'linear-gradient(150deg,#f08a24,#e0459b)'},
   {k:'lei',ic:'&#127916;',img:'leisure',col:COL[3],unit:'h',
