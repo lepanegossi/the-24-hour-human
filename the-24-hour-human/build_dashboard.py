@@ -382,13 +382,13 @@ TOOLS = [
 # Ordered the way the work happened: the data first, then the story built on it,
 # then the redesign of how it looks.
 CREDITS = [
-    ("Nathalli Domingos", "ND",
+    ("nd", "Nathalli Domingos", "ND",
      "Data sourcing, cleaning and the schema behind every number, and the persona videos",
      "var(--pca)", "var(--accent)"),
-    ("Camila Leite", "CL",
+    ("cl", "Camila Leite", "CL",
      "The narrative, the first version of the dashboard and the views it is built from",
      "var(--hot)", "var(--warm)"),
-    ("Leticia Toniolo", "LT",
+    ("lt", "Leticia Toniolo", "LT",
      "Visual redesign, interactions, accessibility and the generated illustrations",
      "var(--lei)", "var(--pca)"),
 ]
@@ -404,10 +404,17 @@ def tools_html():
             f'<path d="{ICON_PATHS[key]}"/></svg>'
             f'<b>{name}</b><i>{note}</i></li>'
         )
+    # A photo if one has been dropped into assets/team/, the initials on the
+    # gradient if not. Optional on purpose: this is a public page, so a face only
+    # goes on it if the person handed over an image they chose. Nothing is pulled
+    # from an internal directory, and no slot is ever left visibly empty.
     people = []
-    for name, ini, role, c1, c2 in CREDITS:
+    for slug, name, ini, role, c1, c2 in CREDITS:
+        photo = ROOT / "assets" / "team" / f"{slug}.webp"
+        face = (f'<img src="assets/team/{slug}.webp" alt="" loading="lazy">'
+                if photo.exists() else ini)
         people.append(
-            f'<li><span class="pav" aria-hidden="true" style="--pc1:{c1};--pc2:{c2}">{ini}</span>'
+            f'<li><span class="pav" aria-hidden="true" style="--pc1:{c1};--pc2:{c2}">{face}</span>'
             f'<span class="pwho"><b>{name}</b><i>{role}</i></span></li>'
         )
     return ('<ul class="toolrow">' + "".join(tiles) + "</ul>",
@@ -733,9 +740,13 @@ html[data-mood="dark"] .tool svg{fill:var(--tcd)}
 .people{list-style:none;display:flex;flex-direction:column;gap:16px}
 .people li{display:flex;align-items:center;gap:14px}
 .pav{flex:0 0 auto;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;
- font-family:var(--display);font-size:14px;font-weight:600;letter-spacing:.03em;color:#fff;
- background:linear-gradient(140deg,var(--pc1),var(--pc2));
+ overflow:hidden;font-family:var(--display);font-size:14px;font-weight:600;letter-spacing:.03em;
+ color:#fff;background:linear-gradient(140deg,var(--pc1),var(--pc2));
  box-shadow:0 8px 18px -10px rgba(20,26,51,.5)}
+/* a photo fills the circle and keeps a rim of the gradient, so a face and a pair
+   of initials sit at the same size and read as the same component */
+.pav img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;
+ border:2px solid transparent}
 .pwho{display:flex;flex-direction:column}
 .pwho b{font-size:14.5px;font-weight:650;color:var(--ink);line-height:1.35}
 .pwho i{font-style:normal;font-size:12.5px;color:var(--muted);line-height:1.45}
