@@ -14,16 +14,19 @@ Escreve o .vtt ao lado do .mp4, que e onde o dashboard procura. Depois disso
 o venv e o cache do modelo (~/.cache/huggingface) podem ser apagados.
 
 Regras de legendagem aplicadas sobre a transcricao:
+- uma frase por cue, para o texto nao adiantar a fala
+- cada cue segura a tela ate pouco antes do proximo, ocupando a pausa
 - no maximo 2 linhas por cue, 37 caracteres por linha
-- nenhum cue passa de 6s (recomendacao para leitor adulto)
+- nenhum cue passa de 6s (recomendacao para leitor adulto) nem de 24 car/s
 - quebra de linha equilibrada, preferindo cair depois de pontuacao
-- corte de cue so em fronteira de palavra, com o tempo real daquela palavra
+- corte de frase longa so em fronteira de palavra, com o tempo real da palavra
 """
-import math
+import re
 import sys
 from pathlib import Path
 
 MAX_LINE, MAX_LINES, MAX_DUR, MAX_CPS = 37, 2, 6.0, 24.0
+LEAD_OUT = 0.08          # intervalo minimo entre um cue e o proximo
 MAX_CHARS = MAX_LINE * MAX_LINES
 
 # Whisper escreve o que ouve; estas trocas so acertam grafia, nunca palavra: a
@@ -45,6 +48,18 @@ def norm(word):
     return bare
 
 
+def text_of(words):
+    """Junta as palavras e limpa artefatos de tokenizacao.
+
+    Whisper as vezes devolve um numero decimal em dois tokens ("5" + ".6") ou
+    solta a pontuacao da palavra, e isso vaza para a tela como "5 .6 years".
+    """
+    t = " ".join(norm(w.word) for w in words)
+    t = re.sub(r"(\d)\s+\.\s*(\d)", r"\1.\2", t)   # 5 .6  -> 5.6
+    t = re.sub(r"\s+([,.;:!?])", r"\1", t)          # word , -> word,
+    return re.sub(r"\s{2,}", " ", t).strip()
+
+
 def wrap(text):
     """Duas linhas equilibradas, preferindo quebrar depois de pontuacao."""
     if len(text) <= MAX_LINE:
@@ -62,30 +77,75 @@ def wrap(text):
 
 
 def split_words(words):
-    """Fatia uma fala em pedacos que caibam nas regras, cortando em palavra.
+    """Fatia uma fala em pedacos que todos caibam nas regras, cortando em palavra.
 
-    So corta quando o texto nao cabe em duas linhas ou o cue fica longo demais.
+    So corta quando o texto realmente nao couber: e o proprio wrap() que decide,
+    nao uma contagem de caracteres. Contar caracteres erra, porque 74 caracteres
+    cabem em duas linhas de 37 apenas se existir fronteira de palavra no lugar
+    certo -- "But here's something important. Japanese women carry a much bigger
+    share," tem 73 e nao cabe, ja que a primeira linha so pode fechar em
+    "important." e o resto passa de 37.
+
     Cortar por velocidade de leitura foi tentado e sai pior: as falas aqui sao
     frases curtas, e dividir uma delas deixa um orfao de duas palavras na tela
     por menos de um segundo, que le pior do que a frase inteira um pouco rapida.
     """
-    text = " ".join(norm(w.word) for w in words)
+    text = text_of(words)
     dur = words[-1].end - words[0].start
-    n = max(math.ceil(len(text) / MAX_CHARS), math.ceil(dur / MAX_DUR))
-    if n <= 1:
+    if len(words) < 2 or (wrap(text) is not None and dur <= MAX_DUR):
         return [words]
-    target = len(text) / n
-    chunks, buf, acc = [], [], 0
+    # melhor ponto de corte: o mais perto do meio, com desconto para pontuacao
+    target, acc, best = len(text) / 2, 0, None
+    for i, w in enumerate(words[:-1]):
+        acc += len(norm(w.word)) + 1
+        score = abs(acc - target) - (8 if norm(w.word)[-1:] in ".,;:!?" else 0)
+        if best is None or score < best[0]:
+            best = (score, i + 1)
+    cut = best[1]
+    return split_words(words[:cut]) + split_words(words[cut:])
+
+
+def sentences(words):
+    """Agrupa palavras em frases. Um cue que comeca e termina numa frase le muito
+    melhor do que um cue cortado no meio dela, e o tamanho dos segmentos que o
+    Whisper devolve varia demais entre videos para servir de fronteira: no de
+    Camille vieram frases inteiras, no de Haruto vieram corridas de tres frases.
+    """
+    out, buf = [], []
     for w in words:
         buf.append(w)
-        acc += len(norm(w.word)) + 1
-        ends_clause = norm(w.word)[-1:] in ".,;:!?"
-        if len(chunks) < n - 1 and acc >= target * .72 and (ends_clause or acc >= target * 1.15):
-            chunks.append(buf)
-            buf, acc = [], 0
+        token = norm(w.word)
+        # ".6" de um decimal nao fecha frase; letra ou ) antes do ponto, sim
+        if re.search(r"[A-Za-z0-9)\"'\u2019][.!?]+[\"'\u2019]?$", token) \
+                and not re.match(r"^\.\d", token):
+            out.append(buf)
+            buf = []
     if buf:
-        chunks.append(buf)
-    return [c for c in chunks if c]
+        out.append(buf)
+    return out
+
+
+def hold(cues, media_end):
+    """Estica cada cue ate pouco antes do proximo comecar.
+
+    Whisper devolve o intervalo em que a palavra soa, e nada mais. Usar isso como
+    duracao do cue faz "You want to know how my day goes?" caber em 1,24s, ou seja
+    27 caracteres por segundo, ilegivel -- quando na verdade existe meio segundo de
+    respiro antes da frase seguinte que ninguem esta usando. Legendagem normal
+    ocupa esse respiro e deixa so um intervalo minimo entre cues.
+
+    Isso resolve a velocidade de leitura sem juntar frases, que era a alternativa
+    e sai pior: juntar por cima de uma pausa faz a segunda frase aparecer escrita
+    antes de ser dita.
+    """
+    out = []
+    for i, (start, end, text) in enumerate(cues):
+        # o ultimo cue tambem para antes do fim: a duracao que o Whisper reporta
+        # arredonda para cima e passa alguns milissegundos do container, o que
+        # deixaria o .vtt terminando depois do video
+        limit = (cues[i + 1][0] if i + 1 < len(cues) else media_end) - LEAD_OUT
+        out.append((start, max(end, min(limit, start + MAX_DUR)), text))
+    return out
 
 
 def ts(t):
@@ -104,16 +164,15 @@ def build(src: Path, model_size="small"):
     print(f"{src.name}: language={info.language} ({info.language_probability:.2f}), "
           f"{info.duration:.1f}s")
 
-    cues = []
-    for seg in segments:
-        words = [w for w in (seg.words or []) if w.word.strip()]
-        if not words:
-            continue
-        for chunk in split_words(words):
-            cues.append((chunk[0].start, chunk[-1].end,
-                         " ".join(norm(w.word) for w in chunk)))
-    if not cues:
+    words = [w for seg in segments for w in (seg.words or []) if w.word.strip()]
+    if not words:
         sys.exit(f"{src.name}: no speech found, nothing written")
+
+    cues = []
+    for group in sentences(words):
+        for chunk in split_words(group):
+            cues.append((chunk[0].start, chunk[-1].end, text_of(chunk)))
+    cues = hold(cues, info.duration)
 
     # nenhum cue pode comecar antes do anterior terminar
     for i in range(1, len(cues)):
