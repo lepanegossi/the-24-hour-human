@@ -1,0 +1,72 @@
+# Publica o dashboard em https://lepanegossi.github.io/the-24-hour-human/
+#
+# O nome do dash na URL vem do NOME DO REPOSITORIO, e o Pages serve a raiz do
+# site, nao uma subpasta. Como a fonte vive em the-24-hour-human/, servir o repo
+# direto repetiria o nome no caminho. Aqui o artefato publicado E essa pasta, com
+# dashboard.html copiado como index.html.
+#
+# Roda o build no CI em vez de publicar o HTML commitado, de proposito: assim a
+# pagina no ar e sempre o que build_dashboard.py produz a partir dos CSVs, e nao
+# uma versao que alguem esqueceu de regerar.
+name: Publish dashboard to Pages
+
+on:
+  push:
+    branches: [redesign-visuals]
+    paths:
+      - "the-24-hour-human/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# uma publicacao por vez, sem cancelar a que ja esta em voo
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # build_dashboard.py usa so a biblioteca padrao, entao nao ha o que instalar
+      - name: Build the dashboard
+        working-directory: the-24-hour-human
+        run: |
+          python3 build_dashboard.py
+          test -s dashboard.html
+
+      - name: Lay out the site root
+        working-directory: the-24-hour-human
+        run: |
+          cp dashboard.html index.html
+          # sem isso o Pages passa o site pelo Jekyll, que ignora pasta com _
+          touch .nojekyll
+          # o que e fonte nao precisa ir para o ar
+          rm -f build_dashboard.py make_captions.py publish.sh
+          rm -rf __pycache__
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: the-24-hour-human
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
