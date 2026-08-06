@@ -49,10 +49,14 @@ jobs:
         working-directory: the-24-hour-human
         run: |
           cp dashboard.html index.html
+          # marca de qual commit gerou esta pagina, para o passo de verificacao
+          # poder confirmar que foi ESTE build que chegou ao ar, e nao o anterior
+          sed -i "s#</head>#<meta name=\"build\" content=\"$GITHUB_SHA\">\n</head>#" index.html
+          grep -q "$GITHUB_SHA" index.html
           # sem isso o Pages passa o site pelo Jekyll, que ignora pasta com _
           touch .nojekyll
           # o que e fonte nao precisa ir para o ar
-          rm -f build_dashboard.py make_captions.py publish.sh
+          rm -f build_dashboard.py make_captions.py
           rm -rf __pycache__
 
       - uses: actions/configure-pages@v5
@@ -68,11 +72,23 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      # O Pages deste repo demora mais que os 10 minutos que esta acao espera, e o
+      # maximo que ela aceita e justamente 10, entao o timeout dela nao e sinal de
+      # falha: o deploy chega ao ar depois. Em vez de confiar no passo, o passo
+      # seguinte confere o site.
       - id: deployment
+        continue-on-error: true
         uses: actions/deploy-pages@v4
-        with:
-          # o padrao e 10 min e nao basta aqui: as duas primeiras publicacoes
-          # ficaram em deployment_in_progress alem disso e a acao abortou, mesmo
-          # com o deploy chegando ao ar depois
-          timeout: 1800000
-          error_count: 20
+
+      - name: Confirm the live site is serving this build
+        run: |
+          url="https://lepanegossi.github.io/the-24-hour-human/"
+          for i in $(seq 1 90); do
+            if curl -fsS --max-time 20 "$url" | grep -q "$GITHUB_SHA"; then
+              echo "live after $((i * 20))s: $url"
+              exit 0
+            fi
+            sleep 20
+          done
+          echo "::error::$url is not serving $GITHUB_SHA after 30 minutes"
+          exit 1
