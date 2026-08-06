@@ -70,3 +70,9 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          # o padrao e 10 min e nao basta aqui: as duas primeiras publicacoes
+          # ficaram em deployment_in_progress alem disso e a acao abortou, mesmo
+          # com o deploy chegando ao ar depois
+          timeout: 1800000
+          error_count: 20
