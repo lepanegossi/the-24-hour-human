@@ -882,7 +882,7 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
   <div class="kicker">An interactive data story &middot; VizCon 2026</div>
   <h1>The 24-Hour Human</h1>
   <p class="thesis">The fairest thing the world hands out, and the most unequal thing we do with it.</p>
-  <p class="lead">Everyone alive gets the same <b>1,440 minutes</b> tomorrow morning. Where you were born quietly rewrites how you spend them &mdash; how long you work, how much you rest, who carries the work nobody pays for. Follow the day and watch it happen.</p>
+  <p class="lead">Everyone alive gets the same <b>1,440 minutes</b> tomorrow morning. Where you were born quietly rewrites how you spend them, how long you work, how much you rest, who carries the work nobody pays for. Follow the day and watch it happen.</p>
   <div class="stats">
     <div class="stat" style="--ac:#f08a24">
       <svg class="ki" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 1.8"/></svg>
@@ -905,7 +905,7 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
   <div class="sintro">
   <div class="shead"><span class="chapno">01</span><span class="sh">Meet our humans</span><span class="tchip">07:00 &middot; Morning</span></div>
   <h2>One day, <em>five lives</em></h2>
-  <p class="sub">Meet our neighbors from around the world, one from each continent. Here's where you'll see how a single day can look completely different depending on where you stand, and how that everyday routine really plays out across the globe. What could each place add to your own day? Each ring is one real 24-hour day, so hover it to explore the hours &mdash; then <span class="aha">click any card to open that person's day in full</span>, with their story, their numbers against the world, and them telling you about it.</p>
+  <p class="sub">Meet our neighbors from around the world, one from each continent. Here's where you'll see how a single day can look completely different depending on where you stand, and how that everyday routine really plays out across the globe. What could each place add to your own day? Each ring is one real 24-hour day, so hover it to explore the hours, then <span class="aha">click any card to open that person's day in full</span>, with their story, their numbers against the world, and them telling you about it.</p>
   </div>
   <div class="pgrid" id="personaGrid"></div>
   <div class="pdetail" id="personaDetail" tabindex="-1" hidden></div>
@@ -915,7 +915,7 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
   <div class="sintro">
   <div class="shead"><span class="chapno">02</span><span class="sh">The first surprise</span><span class="tchip">09:00 &middot; Morning</span></div>
   <h2>Who does it <em>most?</em></h2>
-  <p class="sub">The same 1,440 minutes, split five ways &mdash; and every one of those slices has a world champion. <span class="aha">Pick a piece of the day</span> to see which countries spend the most of it, and which one sits at the other end. Some rankings are exactly what you would guess. One of them is the first real surprise in this data.</p>
+  <p class="sub">The same 1,440 minutes, split five ways, and every one of those slices has a world champion. <span class="aha">Pick a piece of the day</span> to see which countries spend the most of it, and which one sits at the other end. Some rankings are exactly what you would guess. One of them is the first real surprise in this data.</p>
   </div>
   <div class="tgrid" id="topicGrid"></div>
   <div class="trank" id="topicRank"></div>
@@ -994,7 +994,7 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
   <div class="sintro">
   <div class="shead"><span class="chapno">06</span><span class="sh">The trade-off</span><span class="tchip">21:30 &middot; Evening</span></div>
   <h2>Work vs. <em>free time</em></h2>
-  <p class="sub">Remember our five friends? Every flag is one country, placed by how long its day at work runs and how much of the day is left for itself. <span class="aha">The harder a country works, the less it plays</span> &mdash; and you can watch the flags drift down as they move right. Camille takes it slow, Sof&iacute;a barely catches a break &mdash; and our five appear as their own faces, so you can spot them without hunting.</p>
+  <p class="sub">Remember our five friends? Every flag is one country, placed by how long its day at work runs and how much of the day is left for itself. <span class="aha">The harder a country works, the less it plays</span>, and you can watch the flags drift down as they move right. Camille takes it slow, Sof&iacute;a barely catches a break, and our five appear as their own faces, so you can spot them without hunting.</p>
   </div>
   <div class="panel">
     <div class="scplot" id="scPlot">
@@ -1135,14 +1135,14 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
       <h2>Where the data comes from</h2>
       <ul>
         <li><a href="https://www.oecd.org/en/data/datasets/time-use-database.html"
-          target="_blank" rel="noopener">OECD Time Use Database</a> &mdash; the five slices of the
-          day, split by sex, for people aged 15&ndash;64. Minutes per day, pulled from the SDMX
+          target="_blank" rel="noopener">OECD Time Use Database</a>, the five slices of the
+          day, split by sex, for people aged 15 to 64. Minutes per day, pulled from the SDMX
           dataflow <code>DSD_TIME_USE@DF_TIME_USE</code>.</li>
         <li><a href="https://data.worldbank.org/indicator/NY.GDP.PCAP.PP.CD"
-          target="_blank" rel="noopener">World Bank</a> &mdash; GDP per capita, PPP
+          target="_blank" rel="noopener">World Bank</a>, GDP per capita, PPP
           (indicator <code>NY.GDP.PCAP.PP.CD</code>), used as the income measure.</li>
         <li><a href="https://ourworldindata.org/time-use" target="_blank" rel="noopener">Our World
-          in Data</a> &mdash; life satisfaction (Cantril ladder), annual working hours, average
+          in Data</a>, life satisfaction (Cantril ladder), annual working hours, average
           effective retirement age, and leisure by sex.</li>
       </ul>
     </div>
@@ -1150,8 +1150,8 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
       <h2>How to read these numbers</h2>
       <ul>
         <li><b>Every "per day" figure is an average over everyone, and over every
-          day.</b> OECD divides a country's total time by its whole adult population &mdash; people
-          in paid work and people out of it &mdash; and across all seven days, holidays included.
+          day.</b> OECD divides a country's total time by its whole adult population, people
+          in paid work and people out of it, and across all seven days, holidays included.
           So paid work per day is not the length of a working day: <b>Italy</b>&rsquo;s <b>2h57</b> is a whole country&rsquo;s paid hours spread across every adult and every date, and <b>Japan</b>&rsquo;s <b>6h08</b> at the top of the range is the same calculation, not a longer shift.</li>
         <li>The five categories sum to 24 hours, so every chart here is a share of one real day.
           The one exception is <b>"a year of work"</b>, which is counted per worker rather than
@@ -1166,6 +1166,9 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
         <li><b>20 of the 35 countries</b> carry OECD&rsquo;s &ldquo;definition differs&rdquo; flag on at least one category, so a gap of a few minutes between two countries is not necessarily a real one.</li>
         <li><b>Coverage is 35 OECD and partner countries.</b> No South American country is in the
           time-use database, which is why the map has a hole over the continent.</li>
+        <li><b>Retirement age is the men's figure.</b> The source carries the average effective
+          retirement age for men, so the "Working until when?" road reflects men across countries,
+          not women.</li>
         <li>The 2050 screen is an <b>illustrative model</b>, not a forecast: it reads the
           relationship between income and time across countries and applies it to one of them.</li>
       </ul>
@@ -1675,7 +1678,7 @@ document.getElementById('qbtn').addEventListener('click',()=>{
 const TOPICS=[
   {k:'pca',img:'personal-care',col:COL[0],unit:'h',
    name:'Sleep &amp; self-care',
-   what:'Sleeping, eating, washing, getting ready. Not pure sleep &mdash; the data does not separate it.',
+   what:'Sleeping, eating, washing, getting ready. Not pure sleep, the data does not separate it.',
    fb:'linear-gradient(150deg,#5a67d8,#8b5cf6)'},
   {k:'paw',img:'paid-work',col:COL[1],unit:'h',
    name:'Paid work',
@@ -1735,15 +1738,15 @@ function showTopic(i){
     <div ${st('trankcap')}><h3>${t.name}</h3><span>${t.what}</span></div>
     <div ${st('panel')}><div class="bubbles">${bubbles}</div>
       <p class="tnote">Top ten of 35, biggest circle first. At the other end sits
-        <b>${last.country}</b> with <b>${fmt(lo,t.unit)}</b> &mdash;
+        <b>${last.country}</b> with <b>${fmt(lo,t.unit)}</b>,
         <b>${t.unit==='h'?hm(hi-lo):Math.round(hi-lo)+'h'}</b> less than
         ${sorted[0].country}.${t.k==='paw'?` And here is the surprise: this ranking flips the
-        usual assumption. The countries at the top are not the richest ones &mdash; wealth is
+        usual assumption. The countries at the top are not the richest ones, wealth is
         what lets a nation ease off the clock.`:''}${t.k==='wh'?` Stretched over a year the
         gap stops being abstract: that is nearly <b>${Math.round((hi-lo)/8)} working days</b>
         of difference between the top and the bottom of this list.`:''}
         <span class="tbase">${t.k==='wh'
-          ? 'Counted per worker, not per person &mdash; the only figure on this page that is.'
+          ? 'Counted per worker, not per person, the only figure on this page that is.'
           : 'A population average: the country total spread over every adult, working or not, '+
             'and over all seven days. Not the length of a shift.'}</span></p>
     </div>`;
@@ -1857,7 +1860,7 @@ function drawWorkVsLeisure(){
   document.getElementById('scNote').innerHTML=
     `Split the 35 into quarters by how long they work and the drop is not gradual: the three
      lighter-working quarters all sit near <b>${hm(light)}</b> of leisure, and only the
-     hardest-working quarter breaks away at <b>${hm(q[3].lei)}</b> &mdash; about
+     hardest-working quarter breaks away at <b>${hm(q[3].lei)}</b>, about
      <b>${gap} minutes</b> less every single day. Working somewhat more costs you little.
      Working a lot more costs you an hour.`;
 }
@@ -1902,7 +1905,7 @@ function drawRoad(){
     const el=document.createElement('div');
     el.className='rmk'+(personaISO.includes(c.iso3)?' p':'');
     el.style.left=x+'px';el.style.bottom=(lane*46)+'px';
-    el.title=c.country+' — retires at '+c.ret.toFixed(1);
+    el.title=c.country+', retires at '+c.ret.toFixed(1);
     el.innerHTML=`<img src="assets/flags/${c.iso2}.png" alt="${c.country} flag" loading="lazy">`;
     rField.appendChild(el);});
   for(let a=60;a<=72;a+=2){
@@ -2003,7 +2006,7 @@ sliderText();
          drop is not gradual. Three of those quarters all keep near <b>${hm(light)}</b> of
          free time. Only the hardest-working quarter breaks away, at <b>${hm(q[3].lei)}</b>.`,
         `Working somewhat more costs almost nothing. Working a lot more costs an hour a day.
-         Which means the hour sits at a threshold, not on a slope &mdash; and thresholds are
+         Which means the hour sits at a threshold, not on a slope, and thresholds are
          set by someone.`]},
     {c:COL[1],n:'02',t:'Wealth buys back the wrong hour',
      big:'&asymp;0 min',
@@ -2011,11 +2014,11 @@ sliderText();
          countries do get time back: leisure climbs <b>+${(M.lei_h.b*60).toFixed(0)} min</b>
          and paid work falls <b>${(M.paw_h.b*60).toFixed(0)} min</b> for every step up in
          income.`,
-        `Unpaid work moves by that number at the top &mdash; effectively nothing. Prosperity
+        `Unpaid work moves by that number at the top, effectively nothing. Prosperity
          shortens the workday and leaves the second shift exactly where it was.
          <b>Money is not the lever for that one.</b>`]},
     {c:COL[2],n:'03',t:'What gets counted gets argued about',
-     big:worst.country===best.country?'&mdash;':Math.round((worst.gap-best.gap)*60)+' min',
+     big:worst.country===best.country?'n/a':Math.round((worst.gap-best.gap)*60)+' min',
      p:[`The spread between the widest gender gap here and the narrowest is that big:
          <b>${worst.country}</b> at <b>${Math.round(worst.gap*60)} min</b> a day against
          <b>${best.country}</b> at <b>${Math.round(best.gap*60)} min</b>. Same century,
