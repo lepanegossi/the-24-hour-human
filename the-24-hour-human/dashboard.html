@@ -101,6 +101,10 @@ button{font:inherit}
 
 .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;position:relative;z-index:2}
 .wrap.tail{padding-bottom:110px}
+/* the last chapter's tail padding stacked on the footer's own 76px margin and put
+   186px of sky before the sources; the 110px stays on the block after <main>,
+   where it is the page's bottom breathing room and not a gap between two things */
+main>.wrap.tail{padding-bottom:36px}
 section{margin-top:112px}
 /* The hero is a full viewport tall and centres its content, so it already ends in
    a stretch of empty sky; adding the full 112px rhythm on top of that read as a
@@ -118,7 +122,13 @@ section{margin-top:112px}
    seam across it. Now they only lay a soft veil over whatever sky is behind,
    feathered at both edges so there is no seam, and they no longer override the
    ink — the global mood does that, in step with the sky. */
-.act{position:relative;z-index:2;padding:80px 0 84px;margin-top:112px}
+/* The band's own padding sits on top of the 112px chapter rhythm, so the empty sky
+   before a band's heading measured 192px and after it 196px, against 112px
+   everywhere else. Split the same 112px between the margin and the padding, and
+   take the following chapter's margin down to match, so a band costs no more
+   vertical space than a plain chapter. */
+.act{position:relative;z-index:2;padding:48px 0 48px;margin-top:64px}
+.act+.wrap>section:first-child{margin-top:64px}
 .act::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:100vw;
  transform:translateX(-50%);z-index:-1;pointer-events:none;
  background:linear-gradient(180deg,transparent 0%,rgba(12,16,42,.18) 15%,
@@ -154,7 +164,7 @@ body,.panel,.quiz,.pcard,.mappanel,.ai,.note,.pollopt,.predkpis .k,
  text-align:center;position:relative;padding:56px 0 28px}
 /* a real, legible clock on a frosted disc — the old version was a faint ring
    behind the title and just read as scattered dashes over the clouds */
-.heroclock{width:158px;height:158px;margin:0 auto 18px;border-radius:50%;flex:0 0 auto;
+.heroclock{width:176px;height:176px;margin:0 auto 20px;border-radius:50%;flex:0 0 auto;
  background:rgba(255,255,255,.5);backdrop-filter:blur(6px) saturate(1.15);
  box-shadow:0 0 0 1px rgba(255,255,255,.8),0 20px 44px -20px rgba(20,26,51,.45),
   inset 0 1px 0 rgba(255,255,255,.9)}
@@ -216,7 +226,7 @@ html[data-mood="dark"] .stat .l{color:var(--muted)}
    trim by viewport HEIGHT, which is the dimension that actually runs out. */
 @media(max-height:930px){
  .hero{padding:36px 0 18px}
- .heroclock{width:124px;height:124px;margin-bottom:14px}
+ .heroclock{width:152px;height:152px;margin-bottom:16px}
  .hero .thesis{font-size:clamp(17px,2.1vw,24px);margin-top:12px;padding-top:12px}
  .hero .lead{font-size:15.5px;margin-top:10px}
  .stats{margin-top:18px}
@@ -224,18 +234,24 @@ html[data-mood="dark"] .stat .l{color:var(--muted)}
  .scrollcue{margin-top:16px}
  .scrollcue i{height:22px}
 }
-/* The clock steps down with the screen instead of jumping straight to small: at a
-   813px viewport the scroll cue already sits 56px off the bottom edge, so every
-   pixel the clock gains has to come out of that margin. Measured, not guessed. */
-@media(max-height:860px){.heroclock{width:100px;height:100px;margin-bottom:12px}}
-@media(max-height:760px){.heroclock{width:84px;height:84px}}
-/* below this the clock is the one element the hero can lose without losing meaning.
-   The threshold was 680px, which left a 1366x768 screen (681px of viewport) two
-   pixels over the fold with the scroll cue cut off. */
+/* The clock steps down with the screen instead of jumping straight to small. The
+   budget at each step is the empty space left under the scroll cue: the hero
+   centres its content, so every pixel the clock grows eats half a pixel of the
+   margin above and half of the one below. Measured at each breakpoint, not
+   guessed -- at 895px of viewport there were 103px going spare, which is why the
+   clock had no business being 84px there. */
+@media(max-height:860px){.heroclock{width:140px;height:140px;margin-bottom:14px}}
+@media(max-height:760px){.heroclock{width:112px;height:112px;margin-bottom:12px}}
+/* Below this the lead paragraph goes, and that frees enough room for the clock to
+   stay on at its smallest. Dropping the clock here as well used to be necessary
+   and is not any more: with the lead gone a 681px viewport has 108px of slack. */
 @media(max-height:700px){
- .heroclock{display:none}
+ .heroclock{width:84px;height:84px;margin-bottom:10px}
  .hero .lead{display:none}
 }
+/* and below this it really is the one element the hero can lose without losing
+   meaning: the title, the thesis and the four numbers all carry information */
+@media(max-height:600px){.heroclock{display:none}}
 
 /* ─────────────────────── section headers ─────────────────────── */
 .shead{display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin-bottom:6px}
