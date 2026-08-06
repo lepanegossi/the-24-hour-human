@@ -3,6 +3,14 @@
 An interactive data story about how the world spends the same **1,440 minutes** a day, across 35 countries.
 Theme: *"How the world lives, thrives, and connects."*
 
+**Live:** <https://lepanegossi.github.io/the-24-hour-human/>
+
+Every push to `redesign-visuals` that touches this folder rebuilds and republishes
+it (`.github/workflows/pages.yml`). The workflow runs `build_dashboard.py` itself
+and serves this folder as the site root with `dashboard.html` as `index.html`, so
+the page in the air is always what the CSVs produce and the dashboard's name is
+what shows up in the address.
+
 ## Run it
 
 The dashboard uses a 3D globe (globe.gl) and local assets, so it must be served over HTTP (not opened as `file://`):
