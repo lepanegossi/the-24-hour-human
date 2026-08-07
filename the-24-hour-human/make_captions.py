@@ -32,8 +32,30 @@ MAX_CHARS = MAX_LINE * MAX_LINES
 # Whisper escreve o que ouve; estas trocas so acertam grafia, nunca palavra: a
 # pagina usa ortografia britanica ("organises"), e numero de quatro digitos
 # aparece com separador de milhar em todo o resto do dashboard.
-FIX = {"1487": "1,487", "cafe": "café", "neighbor": "neighbour",
-       "favor": "favour", "color": "colour", "organize": "organise"}
+FIX = {"1487": "1,487", "2181": "2,181", "cafe": "café",
+       "neighbor": "neighbour", "favor": "favour", "color": "colour",
+       "organize": "organise"}
+
+# Erros de reconhecimento, nao de escrita: sao trocas de palavra que mudam o
+# sentido, e cada uma foi conferida contra os CSVs antes de entrar aqui. Sem
+# elas a pagina afirma coisa errada na tela.
+PHRASE_FIX = [
+    # Camille falava do trabalho invisivel; FRA tem upw = 3h01, "on paid" nao existe
+    ("three hours on paid work", "three hours of unpaid work"),
+    # ZAF tem paw = 4h01, entao e "four", nao a preposicao
+    ("For hours and 1 minute", "Four hours and 1 minute"),
+    # o assunto e 2.181 horas por ano
+    ("longest work here of", "longest work year of"),
+    # o lazer do Thabo (5h06) e o maior dos cinco, entao a comparacao e com as
+    # outras quatro pessoas e nao com anos
+    ("any of the other 4 years", "any of the other four"),
+    # frase que o Whisper cortou no meio
+    ("The morning is my.", "The morning is mine."),
+    # nomes
+    ("Ruto and Sofia", "Haruto and Sofía"),
+    ("Sophia", "Sofía"),
+    ("Sofia", "Sofía"),
+]
 
 
 def norm(word):
@@ -48,16 +70,26 @@ def norm(word):
     return bare
 
 
+FIRED = set()
+
+
 def text_of(words):
     """Junta as palavras e limpa artefatos de tokenizacao.
 
-    Whisper as vezes devolve um numero decimal em dois tokens ("5" + ".6") ou
-    solta a pontuacao da palavra, e isso vaza para a tela como "5 .6 years".
+    Whisper as vezes devolve um numero decimal em dois tokens ("5" + ".6"), solta
+    a pontuacao da palavra ou separa o hifen, e isso vaza para a tela como
+    "5 .6 years" ou "24 -hour".
     """
     t = " ".join(norm(w.word) for w in words)
-    t = re.sub(r"(\d)\s+\.\s*(\d)", r"\1.\2", t)   # 5 .6  -> 5.6
-    t = re.sub(r"\s+([,.;:!?])", r"\1", t)          # word , -> word,
-    return re.sub(r"\s{2,}", " ", t).strip()
+    t = re.sub(r"(\d)\s+\.\s*(\d)", r"\1.\2", t)      # 5 .6  -> 5.6
+    t = re.sub(r"\s+-\s*(\w)", r"-\1", t)             # 24 -hour -> 24-hour
+    t = re.sub(r"\s+([,.;:!?])", r"\1", t)            # word , -> word,
+    t = re.sub(r"\s{2,}", " ", t).strip()
+    for wrong, right in PHRASE_FIX:
+        if wrong in t:
+            t = t.replace(wrong, right)
+            FIRED.add(wrong)
+    return t
 
 
 def wrap(text):
@@ -94,11 +126,20 @@ def split_words(words):
     dur = words[-1].end - words[0].start
     if len(words) < 2 or (wrap(text) is not None and dur <= MAX_DUR):
         return [words]
-    # melhor ponto de corte: o mais perto do meio, com desconto para pontuacao
+    # Melhor ponto de corte: o mais perto do meio, com desconto forte para
+    # pontuacao e penalidade para cortar dentro de uma quantidade. Sem essa
+    # penalidade sai "leisure is 1" / "hour and 19 minutes" e "works 2,181" /
+    # "hours a year", com o numero numa tela e a unidade na seguinte.
     target, acc, best = len(text) / 2, 0, None
     for i, w in enumerate(words[:-1]):
-        acc += len(norm(w.word)) + 1
-        score = abs(acc - target) - (8 if norm(w.word)[-1:] in ".,;:!?" else 0)
+        here, nxt = norm(w.word), norm(words[i + 1].word)
+        acc += len(here) + 1
+        score = abs(acc - target)
+        if here[-1:] in ".,;:!?":
+            score -= 14
+        if re.search(r"\d$", here) or re.match(r"^(and|of|a|the|per|to)$", nxt, re.I) \
+                or re.match(r"^(hour|hours|minute|minutes|day|days|year|years)\b", nxt, re.I):
+            score += 40
         if best is None or score < best[0]:
             best = (score, i + 1)
     cut = best[1]
@@ -197,6 +238,8 @@ def build(src: Path, model_size="small"):
     # write descarta o trabalho todo em silencio
     out.write_text("\n".join(body), encoding="utf-8")
     print(f"{len(cues)} cues, worst reading rate {worst:.1f} chars/s -> {out}")
+    if FIRED:
+        print("  correcoes aplicadas: " + "; ".join(sorted(FIRED)))
     print("Check the text against the audio before committing: the transcription "
           "is good, not perfect.")
 
