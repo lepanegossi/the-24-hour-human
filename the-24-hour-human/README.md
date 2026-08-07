@@ -6,10 +6,10 @@ Theme: *"How the world lives, thrives, and connects."*
 **Live:** <https://lepanegossi.github.io/the-24-hour-human/>
 
 Every push to `redesign-visuals` that touches this folder rebuilds and republishes
-it (`.github/workflows/pages.yml`). The workflow runs `build_dashboard.py` itself
-and serves this folder as the site root with `dashboard.html` as `index.html`, so
-the page in the air is always what the CSVs produce and the dashboard's name is
-what shows up in the address.
+it. The workflow lives at the repository root, in `.github/workflows/`, runs
+`build_dashboard.py` itself, and serves this folder as the site root with the built
+`dashboard.html` renamed on the way out. So the page in the air is always what the
+CSVs produce, and the dashboard's name is what shows up in the address.
 
 ## Run it
 
@@ -46,28 +46,46 @@ be deleted.
 
 ```
 build_dashboard.py        # generator: reads data/, writes dashboard.html (source of truth)
-dashboard.html            # the generated dashboard (served output)
+make_captions.py          # transcribes a persona video into the .vtt beside it
+dashboard.html            # the generated dashboard (do not edit: it is overwritten)
 data/
   country_profile.csv     # 35 countries: 5 time categories + income, happiness, work hours, retirement
-  timeuse_by_sex.csv      # same, split by sex (F/M) — used for the gender screen
+  timeuse_by_sex.csv      # same, split by sex (F/M), used for the gender screen
 assets/
-  avatars/                # persona illustrations (SVG)
+  avatars/                # the five persona portraits (WebP, 512px; .svg kept as fallback)
+  video/                  # one .mp4, .vtt and poster per persona
+  team/                   # the three credit photos (optional: initials show if absent)
   flags/                  # circular flags (PNG) for the flag charts
-  lib/globe.gl.min.js     # 3D globe library (local)
-  img/                    # earth textures for the globe
+  sky/                    # the eight illustrated skies, morning to midnight
+  topics/                 # the six topic card illustrations
+  img/                    # earth textures for the globe, and the closing night scene
+  lib/globe.gl.min.js     # 3D globe library, vendored so the page needs no CDN for it
 ```
 
+Everything on the page lives inside `build_dashboard.py`: the CSS, the HTML and the
+JS are string constants there, assembled into `dashboard.html`. Editing
+`dashboard.html` is pointless, the next build overwrites it, and the Pages workflow
+rebuilds on every push.
+
 ## The story (sections)
-1. Hero — the gift of 1,440 minutes (spinning clock; sun rises as you scroll)
-2. Which human are you? — a Tinder-style quiz that matches your day to a country
-3. One day, five lives — five personas, one per continent, with 24h clocks
-4. Where people spend their time — interactive 3D globe (click a country)
-5. Who works the most? — top 10 as sized flag bubbles
-6. The double shift — unpaid work, women vs men (the climax)
-7. Work vs. free time — scatter, our five friends highlighted
-8. Working until when? — retirement as a road with WORK/RETIRE signs
-9. The day of 2050 — a simple predictive model (illustrative, not a forecast)
-10. At the end of the day — reflection + an interactive poll
+
+The page runs on a clock: each chapter carries the hour it belongs to, and the
+illustrated sky behind it moves from morning to deep night as you scroll.
+
+| # | Chapter | Hour | What it is |
+|---|---|---|---|
+| — | The 24-Hour Human | — | Hero: the 1,440 minutes everyone gets, and the thesis |
+| 01 | One day, five lives | 07:00 | Five personas, one per continent. Click one for their video, their day hour by hour, and four things you would not guess |
+| 02 | Who does it most? | 09:00 | Six slices of the day; pick one for its top ten as sized flag bubbles |
+| 03 | Which human are you? | 11:00 | Slide your ideal day and get matched to one of the 35 countries |
+| 04 | Where people spend their time | 12:00 | Interactive 3D globe, or the same countries from a keyboard list |
+| 05 | The double shift | 20:00 | Unpaid work and leisure, women against men. The climax |
+| 06 | Work vs. free time | 21:30 | 35 flags placed by paid work against leisure, r = −0.66 |
+| 07 | Working until when? | 22:30 | Retirement as a road, 35 flags between 60 and 72 |
+| 08 | The day of 2050 | 23:00 | An illustrative model, not a forecast |
+| 09 | At the end of the day | 23:59 | Reflection and a poll, tallied per device |
+| 10 | An hour is a policy choice | 00:00 | What the data can say about where the hours come back from, then the closing question over the night image |
+| — | How this was made | — | Credits, the stack, and how AI was used |
 
 ## Data sources (public & free)
 - OECD Time Use Database
@@ -75,13 +93,13 @@ assets/
 - Our World in Data
 
 ## Notes
-- **Predictive model**: illustrative only — the data is a snapshot, not a time series. Method documented in `predictive_screen_handoff.md`.
-- **Poll**: tallies votes per device (localStorage). Global aggregation across all visitors needs a small backend.
-- Coverage is 35 OECD/partner countries — no South American country is available in the dataset.
+- **Every "per day" figure is a population average**, over the whole adult population and all seven days. Paid work per day is not the length of a working day. The footer says so on the page itself.
+- **Predictive model**: illustrative only, since the data is a snapshot and not a time series. The coefficients are printed by the build.
+- **Poll**: tallies votes per device (localStorage). Aggregating across visitors would need a backend.
+- Coverage is 35 OECD and partner countries. No South American country is in the dataset, which is why the globe has a hole over the continent.
+- **Numbers in the copy are computed, not typed.** Anything that could go stale if a CSV changed is derived in the builder, and the build prints the headline figures so a shift is visible.
 
 ## Docs
-- `narrative.md` — full narrative script (all section texts)
-- `predictive_screen_handoff.md` — spec of the 2050 model for the front-end
-- `data_inventory.md`, `aha_findings.md`, `objective_topics.md` — data context & findings
-- `competitor_analysis.md` — study of past winning dashboards
-- `project_baseline.md` — locked scope
+- `narrative.md` — the original narrative script. It predates the current build and diverges from it in places (chapter order, and the ending), so treat the page as the source of truth for copy.
+- `../SCHEMA.md` — the data contract for the two processed CSVs, and the quality caveats.
+- `../sources.md` — every source, with the indicator or slug used.

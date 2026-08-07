@@ -617,7 +617,49 @@ CSS_TYPE = r"""
  line-height:.92;letter-spacing:-.03em;font-variation-settings:"SOFT" 24,"WONK" 1;
  background:linear-gradient(104deg,#232c5e 0%,#3f4bc4 28%,#8b3fa8 54%,#b32f57 78%,#c2551a 100%);
  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
- padding-bottom:.06em;filter:drop-shadow(0 3px 12px rgba(20,26,51,.2))}
+ padding-bottom:.06em;filter:drop-shadow(0 3px 12px rgba(20,26,51,.2));
+ position:relative}
+
+/* ──────────────── the title arrives as a day passing over it ────────────────
+   The gradient on the letters already runs night blue to morning orange, left to
+   right. Uncovering the words in that same direction means the colours appear in
+   place instead of sliding in: the effect is the day crossing the title, which is
+   the one thing this page is about, rather than a decoration.
+
+   Only clip-path and transform are animated, both compositor-only, so nothing
+   reflows at 116px. The gradient is anchored to the h1's own box, which is why the
+   wipe cannot be done by animating a child: transforming words inside would drag
+   the letters across a fixed gradient and change their colours mid-flight.
+
+   Gated on .in rather than running on load, so it plays when the hero is actually
+   visible and not behind the reveal fade. */
+@keyframes titleWipe{
+  from{clip-path:inset(0 100% -.25em 0);transform:translateY(16px)}
+  to{clip-path:inset(0 -.35em -.25em 0);transform:none}}
+@keyframes titleGlint{
+  from{background-position:-140% 0;opacity:0}
+  12%{opacity:1}
+  to{background-position:240% 0;opacity:0}}
+/* The starting state hides the title, so it is scoped to html.js, set by a one-line
+   script in the head. Without JS the class never arrives, the clip never applies and
+   the title is simply there: an effect is not worth a blank headline. */
+html.js .hero h1{clip-path:inset(0 100% -.25em 0)}
+html.js .hero.in h1{animation:titleWipe 1.15s cubic-bezier(.22,.85,.24,1) .12s both}
+/* the glint is the same words painted a second time in a band of light, so it
+   cannot disturb the gradient underneath */
+html.js .hero h1::after{content:attr(data-title);position:absolute;inset:0;
+ background:linear-gradient(100deg,transparent 38%,rgba(255,255,255,.92) 50%,transparent 62%);
+ background-size:260% 100%;-webkit-background-clip:text;background-clip:text;
+ -webkit-text-fill-color:transparent;opacity:0;pointer-events:none}
+html.js .hero.in h1::after{animation:titleGlint 1.5s cubic-bezier(.4,0,.6,1) .95s both}
+/* Once the wipe has run, the open state stops depending on the animation still being
+   there. animation-fill-mode already holds it, but the starting state of this one
+   hides the headline, and that is not a thing to leave resting on a single
+   mechanism: the class is set on animationend and by a timer either way. */
+html.js .hero.titledone h1{clip-path:none;animation:none;transform:none}
+@media(prefers-reduced-motion:reduce){
+ html.js .hero h1,html.js .hero.in h1{clip-path:none;animation:none;transform:none}
+ html.js .hero h1::after,html.js .hero.in h1::after{animation:none;opacity:0;content:none}}
 /* the thesis, stated instead of implied. The hero used to only invite you to
    explore, so a judge skimming never learned what the piece argues. */
 .hero .thesis{font-family:var(--display);font-weight:500;font-style:italic;
@@ -1032,6 +1074,12 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
  border:1px solid rgba(255,255,255,.1);box-shadow:var(--shadow-lg)}
 #globe::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
  background:radial-gradient(circle at 50% 38%,transparent 52%,rgba(5,8,24,.5))}
+/* mostrado quando o globo nao pode iniciar: a caixa e escura por conta propria, e o
+   texto sobre ela mede 8.9:1 */
+.globefail{color:#dfe4ff;font-size:15px;line-height:1.7;text-align:center;padding:34px;
+ max-width:38ch;position:relative;z-index:1}
+.globefail span{color:#a8b0d8;font-size:13.5px}
+.globefail b{color:#fff;font-weight:600}
 .mappanel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:24px;
  box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
 .mappanel .hint{color:var(--muted);font-size:14.5px;line-height:1.7}
@@ -1245,13 +1293,13 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
 .predtext{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:30px}
 @media(max-width:700px){.predtext{grid-template-columns:1fr}}
 .ptcard{border-radius:var(--r-sm);padding:20px 22px}
-.ptcard h4{font-size:14.5px;margin-bottom:8px;letter-spacing:.02em}
+.ptcard h3{font-size:14.5px;margin-bottom:8px;letter-spacing:.02em}
 .ptcard p{font-size:13.5px;color:var(--muted);line-height:1.68}
 .ptcard b{color:var(--ink);font-weight:600}
 .ptcard.up{background:rgba(15,165,152,.14);border:1px solid rgba(15,165,152,.34)}
-.ptcard.up h4{color:#31d3bd}
+.ptcard.up h3{color:#31d3bd}
 .ptcard.catch{background:rgba(240,138,36,.14);border:1px solid rgba(240,138,36,.34)}
-.ptcard.catch h4{color:#ffb45c}
+.ptcard.catch h3{color:#ffb45c}
 
 /* ──────────────── closing poll ──────────────── */
 .poll{max-width:640px;margin:28px auto 0}
@@ -1323,7 +1371,11 @@ BODY = r"""
     </svg>
   </div>
   <div class="kicker">An interactive data story &middot; VizCon 2026</div>
-  <h1>The 24-Hour Human</h1>
+  <!-- data-title repeats the words for the ::after that carries the glint. It is a
+       decorative second copy, so it must not reach assistive tech: the ::after is
+       generated content on an element that already has the real text, and screen
+       readers read the element's text, not the pseudo-element's. -->
+  <h1 data-title="The 24-Hour Human">The 24-Hour Human</h1>
   <p class="thesis">The fairest thing the world hands out, and the most unequal thing we do with it.</p>
   <p class="lead">Everyone alive gets the same <b>1,440 minutes</b> tomorrow morning. Where you were born quietly rewrites how you spend them, how long you work, how much you rest, who carries the work nobody pays for. Follow the day and watch it happen.</p>
   <div class="stats">
@@ -1351,7 +1403,11 @@ BODY = r"""
   <p class="sub">Meet our neighbors from around the world, one from each continent. Here's where you'll see how a single day can look completely different depending on where you stand, and how that everyday routine really plays out across the globe. What could each place add to your own day? Each ring is one real 24-hour day, so hover it to explore the hours, then <span class="aha">click any card to open that person's day in full</span>, with their story, their numbers against the world, and them telling you about it.</p>
   </div>
   <div class="pgrid" id="personaGrid"></div>
-  <div class="pdetail" id="personaDetail" tabindex="-1" hidden></div>
+  <!-- focus lands here when a card is opened, so the container needs to say what it
+       is: without the role and the label a screen reader announces nothing at all
+       and the reader has to go hunting for what just changed -->
+  <div class="pdetail" id="personaDetail" tabindex="-1" role="region"
+       aria-labelledby="pdtitle" hidden></div>
 </section>
 
 <section class="reveal" id="ch-topics" data-nav="Who does it most">
@@ -1635,6 +1691,17 @@ BODY = r"""
 # JS
 # ══════════════════════════════════════════════════════════════════════════════
 JS = r"""
+/* The title's opening state hides it, so the open state gets a second, independent
+   guarantee: whichever comes first, the wipe finishing or a timer, marks it done.
+   Nothing about a headline should depend on one animation firing. */
+(function(){
+  const hero=document.querySelector('.hero'),h1=hero&&hero.querySelector('h1');
+  if(!h1)return;
+  const done=()=>hero.classList.add('titledone');
+  h1.addEventListener('animationend',e=>{if(e.animationName==='titleWipe')done();});
+  setTimeout(done,3600);
+})();
+
 const D = __DATA__;
 const CATS=['Personal care','Paid work','Unpaid work','Leisure','Other'];
 const COL=['#4f5bd5','#e04b5f','#f08a24','#0fa598','#9aa5b8'];
@@ -2352,7 +2419,12 @@ function drawRoad(){
     el.className='rmk'+(personaISO.includes(c.iso3)?' p':'');
     el.style.left=x+'px';el.style.bottom=(lane*46)+'px';
     el.title=c.country+', retires at '+c.ret.toFixed(1);
-    el.innerHTML=`<img src="assets/flags/${c.iso2}.png" alt="${c.country} flag" loading="lazy">`;
+    // o alt carrega o numero, nao so o nome do pais: era a ultima leitura da pagina
+    // que existia apenas no hover. Fazer os 35 marcadores focaveis resolveria para
+    // o teclado e criaria 35 paradas de tab, o que e pior; no alt a informacao fica
+    // disponivel sem custo de navegacao, e na mesma ordem em que aparece na tela.
+    el.innerHTML=`<img src="assets/flags/${c.iso2}.png" loading="lazy"
+      alt="${c.country}, retires at ${c.ret.toFixed(1)}">`;
     rField.appendChild(el);});
   for(let a=60;a<=72;a+=2){
     const t=document.createElement('div');t.className='rtick';t.style.left=xp(a)+'px';t.textContent=a;rRoad.appendChild(t);}
@@ -2425,8 +2497,8 @@ function renderPred(){
     : `Even where the gender gap is small, income alone doesn't close it in our data.`;
   const catchTxt=`${genderLine} <b>Prosperity won't split the second shift</b>: that needs policy, not just a bigger economy. And this is a <b>pattern, not a promise</b>: freed-up hours can quietly become screen time, and shorter workdays usually take deliberate choices (4-day weeks, paid leave).`;
   document.getElementById('predText').innerHTML=`
-    <div class="ptcard up"><h4>&#127793; The bright side</h4><p>${up}</p></div>
-    <div class="ptcard catch"><h4>&#9888;&#65039; The catch</h4><p>${catchTxt}</p></div>`;
+    <div class="ptcard up"><h3>&#127793; The bright side</h3><p>${up}</p></div>
+    <div class="ptcard catch"><h3>&#9888;&#65039; The catch</h3><p>${catchTxt}</p></div>`;
 }
 selC.addEventListener('change',renderPred);
 document.getElementById('predGrowth').addEventListener('input',()=>{renderPred();sliderText();});
@@ -2527,9 +2599,17 @@ mapPick.addEventListener('change',()=>{
 });
 
 const gEl=document.getElementById('globe');
+/* Two ways this can fail, and only one of them was handled: the library not loading,
+   and the browser refusing a WebGL context (hardware acceleration off, an old
+   machine, a locked-down corporate profile). The second one threw and left an empty
+   box with no explanation. Both now say the same thing, and point at the country
+   list above, which needs no WebGL and reaches every country. */
+const globeFallback=msg=>{gEl.innerHTML=
+  `<div class="globefail">${msg}<br><span>Every country is still available from the
+   <b>list above</b>.</span></div>`;};
 if(typeof Globe==='undefined'){
-  gEl.innerHTML='<div style="color:#a8afd2;padding:30px;text-align:center">Globe library failed to load. Check that assets/lib/globe.gl.min.js exists.</div>';
-}else{
+  globeFallback('The 3D globe could not load.');
+}else try{
   const globe=Globe()(gEl)
     .globeImageUrl('assets/img/earth-day.jpg')
     .backgroundColor('rgba(0,0,0,0)')
@@ -2545,6 +2625,8 @@ if(typeof Globe==='undefined'){
   requestAnimationFrame(sizeGlobe);window.addEventListener('resize',sizeGlobe);
   globe.pointOfView({lat:15,lng:-20,altitude:2.35});
   const ctr=globe.controls();ctr.autoRotate=!reduce;ctr.autoRotateSpeed=0.62;ctr.enableZoom=true;
+}catch(e){
+  globeFallback('This device could not start the 3D globe.');
 }
 """
 
@@ -2560,15 +2642,25 @@ HTML = f"""<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..700&family=Inter:wght@300..800&display=swap">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="assets/lib/globe.gl.min.js"></script>
+<!-- marca que o JS esta ativo antes do primeiro paint. O estado inicial da animacao
+     do titulo o esconde, e sem essa classe a regra nao se aplica: com JS desligado a
+     pagina abre com o titulo la, em vez de com um vazio. -->
+<script>document.documentElement.className='js'</script>
+<!-- defer nos dois: sem ele o parser para no <head> ate baixar 1,7MB de globe.gl
+     mais o Chart.js do CDN, e o hero so pinta depois disso. Script com defer
+     executa em ordem, depois do parse e antes do DOMContentLoaded, que e onde o
+     codigo da pagina espera: por isso os dois podem esperar sem quebrar nada. -->
+<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script defer src="assets/lib/globe.gl.min.js"></script>
 <style>{CSS}{CSS_TYPE}{CSS_VIZ}</style>
 </head>
 <body>
 {BODY}
 <script>
+document.addEventListener('DOMContentLoaded',function(){{
 {JS}
 {JS_2}
+}});
 </script>
 </body>
 </html>

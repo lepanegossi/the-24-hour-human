@@ -7,8 +7,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..700&family=Inter:wght@300..800&display=swap">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="assets/lib/globe.gl.min.js"></script>
+<!-- marca que o JS esta ativo antes do primeiro paint. O estado inicial da animacao
+     do titulo o esconde, e sem essa classe a regra nao se aplica: com JS desligado a
+     pagina abre com o titulo la, em vez de com um vazio. -->
+<script>document.documentElement.className='js'</script>
+<!-- defer nos dois: sem ele o parser para no <head> ate baixar 1,7MB de globe.gl
+     mais o Chart.js do CDN, e o hero so pinta depois disso. Script com defer
+     executa em ordem, depois do parse e antes do DOMContentLoaded, que e onde o
+     codigo da pagina espera: por isso os dois podem esperar sem quebrar nada. -->
+<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script defer src="assets/lib/globe.gl.min.js"></script>
 <style>
 /* ─────────────────────────── design tokens ─────────────────────────── */
 :root{
@@ -182,7 +190,49 @@ body,.panel,.quiz,.pcard,.mappanel,.ai,.note,.pollopt,.predkpis .k,
  line-height:.92;letter-spacing:-.03em;font-variation-settings:"SOFT" 24,"WONK" 1;
  background:linear-gradient(104deg,#232c5e 0%,#3f4bc4 28%,#8b3fa8 54%,#b32f57 78%,#c2551a 100%);
  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
- padding-bottom:.06em;filter:drop-shadow(0 3px 12px rgba(20,26,51,.2))}
+ padding-bottom:.06em;filter:drop-shadow(0 3px 12px rgba(20,26,51,.2));
+ position:relative}
+
+/* ──────────────── the title arrives as a day passing over it ────────────────
+   The gradient on the letters already runs night blue to morning orange, left to
+   right. Uncovering the words in that same direction means the colours appear in
+   place instead of sliding in: the effect is the day crossing the title, which is
+   the one thing this page is about, rather than a decoration.
+
+   Only clip-path and transform are animated, both compositor-only, so nothing
+   reflows at 116px. The gradient is anchored to the h1's own box, which is why the
+   wipe cannot be done by animating a child: transforming words inside would drag
+   the letters across a fixed gradient and change their colours mid-flight.
+
+   Gated on .in rather than running on load, so it plays when the hero is actually
+   visible and not behind the reveal fade. */
+@keyframes titleWipe{
+  from{clip-path:inset(0 100% -.25em 0);transform:translateY(16px)}
+  to{clip-path:inset(0 -.35em -.25em 0);transform:none}}
+@keyframes titleGlint{
+  from{background-position:-140% 0;opacity:0}
+  12%{opacity:1}
+  to{background-position:240% 0;opacity:0}}
+/* The starting state hides the title, so it is scoped to html.js, set by a one-line
+   script in the head. Without JS the class never arrives, the clip never applies and
+   the title is simply there: an effect is not worth a blank headline. */
+html.js .hero h1{clip-path:inset(0 100% -.25em 0)}
+html.js .hero.in h1{animation:titleWipe 1.15s cubic-bezier(.22,.85,.24,1) .12s both}
+/* the glint is the same words painted a second time in a band of light, so it
+   cannot disturb the gradient underneath */
+html.js .hero h1::after{content:attr(data-title);position:absolute;inset:0;
+ background:linear-gradient(100deg,transparent 38%,rgba(255,255,255,.92) 50%,transparent 62%);
+ background-size:260% 100%;-webkit-background-clip:text;background-clip:text;
+ -webkit-text-fill-color:transparent;opacity:0;pointer-events:none}
+html.js .hero.in h1::after{animation:titleGlint 1.5s cubic-bezier(.4,0,.6,1) .95s both}
+/* Once the wipe has run, the open state stops depending on the animation still being
+   there. animation-fill-mode already holds it, but the starting state of this one
+   hides the headline, and that is not a thing to leave resting on a single
+   mechanism: the class is set on animationend and by a timer either way. */
+html.js .hero.titledone h1{clip-path:none;animation:none;transform:none}
+@media(prefers-reduced-motion:reduce){
+ html.js .hero h1,html.js .hero.in h1{clip-path:none;animation:none;transform:none}
+ html.js .hero h1::after,html.js .hero.in h1::after{animation:none;opacity:0;content:none}}
 /* the thesis, stated instead of implied. The hero used to only invite you to
    explore, so a judge skimming never learned what the piece argues. */
 .hero .thesis{font-family:var(--display);font-weight:500;font-style:italic;
@@ -594,6 +644,12 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
  border:1px solid rgba(255,255,255,.1);box-shadow:var(--shadow-lg)}
 #globe::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
  background:radial-gradient(circle at 50% 38%,transparent 52%,rgba(5,8,24,.5))}
+/* mostrado quando o globo nao pode iniciar: a caixa e escura por conta propria, e o
+   texto sobre ela mede 8.9:1 */
+.globefail{color:#dfe4ff;font-size:15px;line-height:1.7;text-align:center;padding:34px;
+ max-width:38ch;position:relative;z-index:1}
+.globefail span{color:#a8b0d8;font-size:13.5px}
+.globefail b{color:#fff;font-weight:600}
 .mappanel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:24px;
  box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
 .mappanel .hint{color:var(--muted);font-size:14.5px;line-height:1.7}
@@ -807,13 +863,13 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
 .predtext{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:30px}
 @media(max-width:700px){.predtext{grid-template-columns:1fr}}
 .ptcard{border-radius:var(--r-sm);padding:20px 22px}
-.ptcard h4{font-size:14.5px;margin-bottom:8px;letter-spacing:.02em}
+.ptcard h3{font-size:14.5px;margin-bottom:8px;letter-spacing:.02em}
 .ptcard p{font-size:13.5px;color:var(--muted);line-height:1.68}
 .ptcard b{color:var(--ink);font-weight:600}
 .ptcard.up{background:rgba(15,165,152,.14);border:1px solid rgba(15,165,152,.34)}
-.ptcard.up h4{color:#31d3bd}
+.ptcard.up h3{color:#31d3bd}
 .ptcard.catch{background:rgba(240,138,36,.14);border:1px solid rgba(240,138,36,.34)}
-.ptcard.catch h4{color:#ffb45c}
+.ptcard.catch h3{color:#ffb45c}
 
 /* ──────────────── closing poll ──────────────── */
 .poll{max-width:640px;margin:28px auto 0}
@@ -883,7 +939,11 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
     </svg>
   </div>
   <div class="kicker">An interactive data story &middot; VizCon 2026</div>
-  <h1>The 24-Hour Human</h1>
+  <!-- data-title repeats the words for the ::after that carries the glint. It is a
+       decorative second copy, so it must not reach assistive tech: the ::after is
+       generated content on an element that already has the real text, and screen
+       readers read the element's text, not the pseudo-element's. -->
+  <h1 data-title="The 24-Hour Human">The 24-Hour Human</h1>
   <p class="thesis">The fairest thing the world hands out, and the most unequal thing we do with it.</p>
   <p class="lead">Everyone alive gets the same <b>1,440 minutes</b> tomorrow morning. Where you were born quietly rewrites how you spend them, how long you work, how much you rest, who carries the work nobody pays for. Follow the day and watch it happen.</p>
   <div class="stats">
@@ -911,7 +971,11 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
   <p class="sub">Meet our neighbors from around the world, one from each continent. Here's where you'll see how a single day can look completely different depending on where you stand, and how that everyday routine really plays out across the globe. What could each place add to your own day? Each ring is one real 24-hour day, so hover it to explore the hours, then <span class="aha">click any card to open that person's day in full</span>, with their story, their numbers against the world, and them telling you about it.</p>
   </div>
   <div class="pgrid" id="personaGrid"></div>
-  <div class="pdetail" id="personaDetail" tabindex="-1" hidden></div>
+  <!-- focus lands here when a card is opened, so the container needs to say what it
+       is: without the role and the label a screen reader announces nothing at all
+       and the reader has to go hunting for what just changed -->
+  <div class="pdetail" id="personaDetail" tabindex="-1" role="region"
+       aria-labelledby="pdtitle" hidden></div>
 </section>
 
 <section class="reveal" id="ch-topics" data-nav="Who does it most">
@@ -1191,6 +1255,18 @@ html[data-mood="dark"] .chgval span.dn{color:#ff8095}
 </div><!-- /wrap -->
 
 <script>
+document.addEventListener('DOMContentLoaded',function(){
+
+/* The title's opening state hides it, so the open state gets a second, independent
+   guarantee: whichever comes first, the wipe finishing or a timer, marks it done.
+   Nothing about a headline should depend on one animation firing. */
+(function(){
+  const hero=document.querySelector('.hero'),h1=hero&&hero.querySelector('h1');
+  if(!h1)return;
+  const done=()=>hero.classList.add('titledone');
+  h1.addEventListener('animationend',e=>{if(e.animationName==='titleWipe')done();});
+  setTimeout(done,3600);
+})();
 
 const D = {"countries": [{"iso3": "AUS", "country": "Australia", "region": "Oceania", "flag": "\ud83c\udde6\ud83c\uddfa", "iso2": "au", "lat": -25.3, "lng": 133.8, "pca": 10.96, "paw": 3.97, "upw": 4.05, "lei": 4.69, "oth": 0.33, "gdp": 71934.4033931263, "life": 6.916, "wh": 1611.13, "ret": 65.3, "upwF": 5.18, "upwM": 2.86}, {"iso3": "AUT", "country": "Austria", "region": "Europe", "flag": "\ud83c\udde6\ud83c\uddf9", "iso2": "at", "lat": 47.5, "lng": 14.5, "pca": 11.13, "paw": 4.43, "upw": 3.13, "lei": 5.11, "oth": 0.2, "gdp": 76777.5421537618, "life": 6.845, "wh": 1438.45, "ret": 63.5, "upwF": 3.96, "upwM": 2.31}, {"iso3": "BEL", "country": "Belgium", "region": "Europe", "flag": "\ud83c\udde7\ud83c\uddea", "iso2": "be", "lat": 50.5, "lng": 4.5, "pca": 11.07, "paw": 3.93, "upw": 3.2, "lei": 5.66, "oth": 0.15, "gdp": 74675.607672673, "life": 6.926, "wh": 1593.29, "ret": 61.6, "upwF": 3.96, "upwM": 2.4}, {"iso3": "BGR", "country": "Bulgaria", "region": "Europe", "flag": "\ud83c\udde7\ud83c\uddec", "iso2": "bg", "lat": 42.7, "lng": 25.5, "pca": 12.05, "paw": 4.7, "upw": 3.15, "lei": 4.02, "oth": 0.08, "gdp": 44451.1001576913, "life": 5.703, "wh": 1659.33, "ret": 64.7, "upwF": 4.28, "upwM": 2.1}, {"iso3": "CAN", "country": "Canada", "region": "Americas", "flag": "\ud83c\udde8\ud83c\udde6", "iso2": "ca", "lat": 56.0, "lng": -106.0, "pca": 10.93, "paw": 5.62, "upw": 3.42, "lei": 3.52, "oth": 0.51, "gdp": 66745.8248561648, "life": 6.741, "wh": 1731.02, "ret": 65.5, "upwF": 4.12, "upwM": 2.73}, {"iso3": "CHN", "country": "China", "region": "Asia", "flag": "\ud83c\udde8\ud83c\uddf3", "iso2": "cn", "lat": 35.0, "lng": 105.0, "pca": 11.56, "paw": 5.66, "upw": 2.73, "lei": 3.8, "oth": 0.25, "gdp": 29333.3311051433, "life": 6.074, "wh": 2327.79, "ret": 66.8, "upwF": 3.9, "upwM": 1.52}, {"iso3": "HRV", "country": "Croatia", "region": "Europe", "flag": "\ud83c\udded\ud83c\uddf7", "iso2": "hr", "lat": 45.1, "lng": 15.2, "pca": 10.91, "paw": 5.36, "upw": 3.38, "lei": 4.18, "oth": 0.17, "gdp": 50946.1671131832, "life": 6.009, "wh": 1974.04, "ret": 61.7, "upwF": 4.3, "upwM": 2.48}, {"iso3": "DNK", "country": "Denmark", "region": "Europe", "flag": "\ud83c\udde9\ud83c\uddf0", "iso2": "dk", "lat": 56.0, "lng": 9.5, "pca": 10.99, "paw": 3.75, "upw": 3.61, "lei": 5.48, "oth": 0.17, "gdp": 83218.071525634, "life": 7.539, "wh": 1379.94, "ret": 65.1, "upwF": 4.05, "upwM": 3.1}, {"iso3": "EST", "country": "Estonia", "region": "Europe", "flag": "\ud83c\uddea\ud83c\uddea", "iso2": "ee", "lat": 58.6, "lng": 25.0, "pca": 10.9, "paw": 4.88, "upw": 2.89, "lei": 5.02, "oth": 0.31, "gdp": 52105.5093433416, "life": 6.41, "wh": 1605.74, "ret": 65.5, "upwF": 3.49, "upwM": 2.32}, {"iso3": "FIN", "country": "Finland", "region": "Europe", "flag": "\ud83c\uddeb\ud83c\uddee", "iso2": "fi", "lat": 64.0, "lng": 26.0, "pca": 10.74, "paw": 4.0, "upw": 3.09, "lei": 5.5, "oth": 0.66, "gdp": 65884.4876972259, "life": 7.764, "wh": 1496.85, "ret": 64.3, "upwF": 3.48, "upwM": 2.7}, {"iso3": "FRA", "country": "France", "region": "Europe", "flag": "\ud83c\uddeb\ud83c\uddf7", "iso2": "fr", "lat": 46.6, "lng": 2.2, "pca": 12.54, "paw": 3.4, "upw": 3.02, "lei": 4.89, "oth": 0.15, "gdp": 63975.353585864, "life": 6.586, "wh": 1487.1, "ret": 60.8, "upwF": 3.73, "upwM": 2.25}, {"iso3": "DEU", "country": "Germany", "region": "Europe", "flag": "\ud83c\udde9\ud83c\uddea", "iso2": "de", "lat": 51.0, "lng": 10.4, "pca": 10.96, "paw": 4.07, "upw": 3.21, "lei": 5.68, "oth": 0.09, "gdp": 75406.6888111618, "life": 6.882, "wh": 1335.27, "ret": 64.0, "upwF": 3.88, "upwM": 2.53}, {"iso3": "GRC", "country": "Greece", "region": "Europe", "flag": "\ud83c\uddec\ud83c\uddf7", "iso2": "gr", "lat": 39.0, "lng": 22.0, "pca": 11.42, "paw": 3.83, "upw": 3.07, "lei": 5.58, "oth": 0.1, "gdp": 45263.6498511586, "life": 5.697, "wh": 1893.06, "ret": 61.7, "upwF": 4.33, "upwM": 1.62}, {"iso3": "HUN", "country": "Hungary", "region": "Europe", "flag": "\ud83c\udded\ud83c\uddfa", "iso2": "hu", "lat": 47.2, "lng": 19.5, "pca": 11.39, "paw": 3.96, "upw": 3.82, "lei": 4.69, "oth": 0.15, "gdp": 49837.6008411067, "life": 5.937, "wh": 1668.16, "ret": 63.4, "upwF": 4.9, "upwM": 2.71}, {"iso3": "IND", "country": "India", "region": "Asia", "flag": "\ud83c\uddee\ud83c\uddf3", "iso2": "in", "lat": 21.0, "lng": 78.0, "pca": 11.46, "paw": 4.92, "upw": 3.19, "lei": 4.23, "oth": 0.21, "gdp": 11747.9160436011, "life": 4.536, "wh": 2382.58, "ret": 69.8, "upwF": 5.87, "upwM": 0.86}, {"iso3": "IRL", "country": "Ireland", "region": "Europe", "flag": "\ud83c\uddee\ud83c\uddea", "iso2": "ie", "lat": 53.4, "lng": -8.0, "pca": 10.15, "paw": 4.47, "upw": 3.49, "lei": 5.21, "oth": 0.69, "gdp": 155089.413131749, "life": 6.928, "wh": 1654.04, "ret": 65.6, "upwF": 4.88, "upwM": 2.12}, {"iso3": "ITA", "country": "Italy", "region": "Europe", "flag": "\ud83c\uddee\ud83c\uddf9", "iso2": "it", "lat": 42.8, "lng": 12.8, "pca": 11.8, "paw": 2.95, "upw": 3.65, "lei": 5.39, "oth": 0.22, "gdp": 62802.5108384276, "life": 6.574, "wh": 1701.42, "ret": 63.3, "upwF": 5.11, "upwM": 2.18}, {"iso3": "JPN", "country": "Japan", "region": "Asia", "flag": "\ud83c\uddef\ud83c\uddf5", "iso2": "jp", "lat": 36.2, "lng": 138.2, "pca": 10.67, "paw": 6.13, "upw": 2.08, "lei": 4.48, "oth": 0.62, "gdp": 55421.8797530311, "life": 6.13, "wh": 1653.9, "ret": 70.8, "upwF": 3.47, "upwM": 0.78}, {"iso3": "LVA", "country": "Latvia", "region": "Europe", "flag": "\ud83c\uddf1\ud83c\uddfb", "iso2": "lv", "lat": 56.9, "lng": 24.6, "pca": 10.69, "paw": 5.5, "upw": 3.27, "lei": 4.48, "oth": 0.06, "gdp": 46136.689377286, "life": 6.365, "wh": 1625.24, "ret": 65.7, "upwF": 4.22, "upwM": 2.16}, {"iso3": "LTU", "country": "Lithuania", "region": "Europe", "flag": "\ud83c\uddf1\ud83c\uddf9", "iso2": "lt", "lat": 55.2, "lng": 23.9, "pca": 10.76, "paw": 5.25, "upw": 3.74, "lei": 4.11, "oth": 0.14, "gdp": 56837.8067003598, "life": 6.704, "wh": 1640.35, "ret": 64.3, "upwF": 4.87, "upwM": 2.53}, {"iso3": "LUX", "country": "Luxembourg", "region": "Europe", "flag": "\ud83c\uddf1\ud83c\uddfa", "iso2": "lu", "lat": 49.8, "lng": 6.1, "pca": 11.43, "paw": 4.74, "upw": 2.99, "lei": 4.61, "oth": 0.23, "gdp": 156542.075847247, "life": 7.063, "wh": 1452.08, "ret": 60.5, "upwF": 3.99, "upwM": 2.02}, {"iso3": "MEX", "country": "Mexico", "region": "Americas", "flag": "\ud83c\uddf2\ud83c\uddfd", "iso2": "mx", "lat": 23.6, "lng": -102.5, "pca": 10.1, "paw": 5.82, "upw": 4.27, "lei": 3.38, "oth": 0.44, "gdp": 25868.4787520629, "life": 6.972, "wh": 1628.87, "ret": 71.3, "upwF": 5.81, "upwM": 2.46}, {"iso3": "NLD", "country": "Netherlands", "region": "Europe", "flag": "\ud83c\uddf3\ud83c\uddf1", "iso2": "nl", "lat": 52.1, "lng": 5.3, "pca": 11.36, "paw": 4.05, "upw": 3.09, "lei": 5.25, "oth": 0.25, "gdp": 87320.1477254029, "life": 7.223, "wh": 1438.74, "ret": 65.2, "upwF": 3.75, "upwM": 2.42}, {"iso3": "NZL", "country": "New Zealand", "region": "Oceania", "flag": "\ud83c\uddf3\ud83c\uddff", "iso2": "nz", "lat": -41.0, "lng": 174.0, "pca": 10.8, "paw": 4.5, "upw": 3.4, "lei": 5.02, "oth": 0.28, "gdp": 57350.3627657521, "life": 6.995, "wh": 1707.52, "ret": 69.8, "upwF": 4.4, "upwM": 2.35}, {"iso3": "NOR", "country": "Norway", "region": "Europe", "flag": "\ud83c\uddf3\ud83c\uddf4", "iso2": "no", "lat": 60.5, "lng": 8.5, "pca": 10.22, "paw": 4.59, "upw": 3.09, "lei": 5.9, "oth": 0.2, "gdp": 104043.666429243, "life": 7.242, "wh": 1412.06, "ret": 66.1, "upwF": 3.53, "upwM": 2.67}, {"iso3": "POL", "country": "Poland", "region": "Europe", "flag": "\ud83c\uddf5\ud83c\uddf1", "iso2": "pl", "lat": 52.0, "lng": 19.0, "pca": 11.37, "paw": 3.57, "upw": 4.13, "lei": 4.35, "oth": 0.58, "gdp": 54262.4040405236, "life": 6.768, "wh": 1806.92, "ret": 62.8, "upwF": 4.88, "upwM": 3.16}, {"iso3": "PRT", "country": "Portugal", "region": "Europe", "flag": "\ud83c\uddf5\ud83c\uddf9", "iso2": "pt", "lat": 39.4, "lng": -8.2, "pca": 11.26, "paw": 4.92, "upw": 3.71, "lei": 4.01, "oth": 0.1, "gdp": 53145.7317498942, "life": 6.029, "wh": 1734.94, "ret": 68.5, "upwF": 5.47, "upwM": 1.6}, {"iso3": "SVN", "country": "Slovenia", "region": "Europe", "flag": "\ud83c\uddf8\ud83c\uddee", "iso2": "si", "lat": 46.1, "lng": 14.8, "pca": 10.47, "paw": 4.41, "upw": 3.84, "lei": 5.18, "oth": 0.1, "gdp": 59244.7106359661, "life": 6.868, "wh": 1587.57, "ret": 63.1, "upwF": 4.77, "upwM": 2.77}, {"iso3": "ZAF", "country": "South Africa", "region": "Africa", "flag": "\ud83c\uddff\ud83c\udde6", "iso2": "za", "lat": -30.6, "lng": 22.9, "pca": 11.58, "paw": 4.01, "upw": 3.04, "lei": 5.1, "oth": 0.27, "gdp": 15905.6794419658, "life": 5.009, "wh": 2181.43, "ret": 63.1, "upwF": 4.16, "upwM": 1.72}, {"iso3": "KOR", "country": "South Korea", "region": "Asia", "flag": "\ud83c\uddf0\ud83c\uddf7", "iso2": "kr", "lat": 36.5, "lng": 127.8, "pca": 11.3, "paw": 5.74, "upw": 2.2, "lei": 4.3, "oth": 0.46, "gdp": 63124.9152183625, "life": 6.04, "wh": 1910.23, "ret": 72.3, "upwF": 3.58, "upwM": 0.82}, {"iso3": "ESP", "country": "Spain", "region": "Europe", "flag": "\ud83c\uddea\ud83c\uddf8", "iso2": "es", "lat": 40.2, "lng": -3.7, "pca": 11.53, "paw": 3.37, "upw": 3.61, "lei": 5.27, "oth": 0.22, "gdp": 59867.6944716701, "life": 6.54, "wh": 1637.99, "ret": 62.1, "upwF": 4.82, "upwM": 2.43}, {"iso3": "SWE", "country": "Sweden", "region": "Europe", "flag": "\ud83c\uddf8\ud83c\uddea", "iso2": "se", "lat": 62.0, "lng": 15.0, "pca": 10.37, "paw": 4.89, "upw": 3.27, "lei": 5.36, "oth": 0.1, "gdp": 72528.8892631159, "life": 7.255, "wh": 1431.5, "ret": 66.4, "upwF": 3.67, "upwM": 2.85}, {"iso3": "TUR", "country": "Turkey", "region": "Asia", "flag": "\ud83c\uddf9\ud83c\uddf7", "iso2": "tr", "lat": 39.0, "lng": 35.0, "pca": 11.36, "paw": 4.11, "upw": 3.1, "lei": 4.76, "oth": 0.67, "gdp": 45288.4750285273, "life": 5.3, "wh": 1747.46, "ret": 66.3, "upwF": 5.08, "upwM": 1.13}, {"iso3": "GBR", "country": "United Kingdom", "region": "Europe", "flag": "\ud83c\uddec\ud83c\udde7", "iso2": "gb", "lat": 54.0, "lng": -2.5, "pca": 10.75, "paw": 4.37, "upw": 3.24, "lei": 5.09, "oth": 0.54, "gdp": 64606.4955066338, "life": 6.694, "wh": 1522.8, "ret": 64.7, "upwF": 4.14, "upwM": 2.33}, {"iso3": "USA", "country": "United States", "region": "Americas", "flag": "\ud83c\uddfa\ud83c\uddf8", "iso2": "us", "lat": 39.8, "lng": -98.6, "pca": 11.07, "paw": 4.64, "upw": 3.29, "lei": 4.66, "oth": 0.35, "gdp": 90026.5163005744, "life": 6.816, "wh": 1788.88, "ret": 67.9, "upwF": 3.91, "upwM": 2.65}], "gender": [{"country": "India", "f": 5.87, "m": 0.86, "gap": 5.01, "leiF": 3.68, "leiM": 4.71}, {"country": "Turkey", "f": 5.08, "m": 1.13, "gap": 3.95, "leiF": 4.51, "leiM": 5.02}, {"country": "Portugal", "f": 5.47, "m": 1.6, "gap": 3.8699999999999997, "leiF": 3.33, "leiM": 4.82}, {"country": "Mexico", "f": 5.81, "m": 2.46, "gap": 3.3499999999999996, "leiF": 3.24, "leiM": 3.55}, {"country": "Italy", "f": 5.11, "m": 2.18, "gap": 2.93, "leiF": 4.68, "leiM": 6.1}, {"country": "Estonia", "f": 3.49, "m": 2.32, "gap": 1.1700000000000004, "leiF": 4.62, "leiM": 5.41}, {"country": "Denmark", "f": 4.05, "m": 3.1, "gap": 0.9499999999999997, "leiF": 5.33, "leiM": 5.66}, {"country": "Norway", "f": 3.53, "m": 2.67, "gap": 0.8599999999999999, "leiF": 5.66, "leiM": 6.12}, {"country": "Sweden", "f": 3.67, "m": 2.85, "gap": 0.8199999999999998, "leiF": 5.1, "leiM": 5.63}, {"country": "Finland", "f": 3.48, "m": 2.7, "gap": 0.7799999999999998, "leiF": 5.14, "leiM": 5.84}], "personas": [{"iso3": "FRA", "name": "Camille", "emoji": "\ud83c\uddeb\ud83c\uddf7", "continent": "Europe", "sig": "The world's longest personal care", "bio": "Camille starts slow, with a warm croissant and a coffee that's in no hurry. In France the day makes room to live: the longest personal-care time of the 35, unrushed mornings, and an early finish line, with most retiring by 61.", "country": "France", "upwF": 3.73, "upwM": 2.25, "trivia": [{"ic": "&#127837;", "t": "Nobody lingers over the basics like France: <b>12h32</b> a day sleeping, eating and getting ready, the longest of the 35, and <b>2h26</b> more than Sof&iacute;a's Mexico at the other end."}, {"ic": "&#9749;", "t": "Her <b>4h53</b> of daily leisure piles up into <b>74 entire 24-hour days</b> of free time a year."}, {"ic": "&#128188;", "t": "Haruto does <b>2h44</b> more paid work than her every single day, about <b>42 extra days</b> at work per year."}, {"ic": "&#127958;", "t": "She stops working at <b>61</b>, <b>10 years</b> before Haruto does."}], "video": "assets/video/fra.mp4", "videoPoster": "assets/video/fra-poster.webp", "avatar": "assets/avatars/fra.webp", "avatarAlt": "assets/avatars/fra.svg", "clock": [12.54, 3.4, 3.02, 4.89, 0.15], "gdp": 63975.353585864, "life": 6.586, "wh": 1487.1, "ret": 60.8}, {"iso3": "JPN", "name": "Haruto", "emoji": "\ud83c\uddef\ud83c\uddf5", "continent": "Asia", "sig": "The most paid work per day", "bio": "Haruto's alarm wins every morning. Japan runs on work, so he logs more paid hours than anyone here, grabs a quick bowl of ramen between shifts, and stays on the job until about 71.", "country": "Japan", "upwF": 3.47, "upwM": 0.78, "trivia": [{"ic": "&#9200;", "t": "Japan works more paid hours than anywhere else in the data: <b>6h08</b> a day, the most of the 35."}, {"ic": "&#129529;", "t": "And the least unpaid work: <b>2h05</b> a day, the lowest of the 35. Someone is still doing it, Japanese women do <b>161 minutes more</b> of it a day than men."}, {"ic": "&#127958;", "t": "He keeps working until about <b>71</b>. Camille will have been retired for a decade by then."}, {"ic": "&#127836;", "t": "His <b>4h29</b> of daily downtime is <b>19 minutes</b> below the 35-country average, the price of that workday."}], "video": "assets/video/jpn.mp4", "videoPoster": "assets/video/jpn-poster.webp", "avatar": "assets/avatars/jpn.webp", "avatarAlt": "assets/avatars/jpn.svg", "clock": [10.67, 6.13, 2.08, 4.48, 0.62], "gdp": 55421.8797530311, "life": 6.13, "wh": 1653.9, "ret": 70.8}, {"iso3": "MEX", "name": "Sof\u00eda", "emoji": "\ud83c\uddf2\ud83c\uddfd", "continent": "Americas", "sig": "The least leisure of all 35", "bio": "Between paid work and a full house, Sof\u00eda barely gets to sit down. Mexico's day is the fullest of all, with the least downtime, so if anyone has earned a spa day it's her, and she keeps going into her early 70s.", "country": "Mexico", "upwF": 5.81, "upwM": 2.46, "trivia": [{"ic": "&#128336;", "t": "Paid work plus work at home adds up to <b>10h05</b> a day, the heaviest total workload of the 35."}, {"ic": "&#128564;", "t": "Which leaves the least downtime of the 35: <b>3h23</b>, while Norway enjoys <b>2h31</b> more."}, {"ic": "&#128717;", "t": "Over a year that gap costs her <b>38 full days</b> of free time."}, {"ic": "&#127958;", "t": "And retirement still waits until <b>71</b>, the 2nd latest exit of the 35."}], "video": "assets/video/mex.mp4", "videoPoster": "assets/video/mex-poster.webp", "avatar": "assets/avatars/mex.webp", "avatarAlt": "assets/avatars/mex.svg", "clock": [10.1, 5.82, 4.27, 3.38, 0.44], "gdp": 25868.4787520629, "life": 6.972, "wh": 1628.87, "ret": 71.3}, {"iso3": "AUS", "name": "Mia", "emoji": "\ud83c\udde6\ud83c\uddfa", "continent": "Oceania", "sig": "The most balanced day", "bio": "Work in the morning, waves at sunset. Australia keeps things in balance, so Mia splits her hours evenly across work, home and leisure, and clocks out for good around 65.", "country": "Australia", "upwF": 5.18, "upwM": 2.86, "trivia": [{"ic": "&#9878;", "t": "Work, home and leisure sit closer together in Australia than almost anywhere: <b>3h58</b>, <b>4h03</b> and <b>4h41</b>, the most balanced day of the 35."}, {"ic": "&#127940;", "t": "Her <b>4h41</b> of daily leisure is <b>1h19</b> more than Sof&iacute;a gets."}, {"ic": "&#127958;", "t": "She clocks out for good around <b>65</b>, almost exactly the 35-country average of <b>65</b>."}, {"ic": "&#128176;", "t": "Balanced is not the same as idle: Australia still works <b>1611 hours</b> a year."}], "video": "assets/video/aus.mp4", "videoPoster": "assets/video/aus-poster.webp", "avatar": "assets/avatars/aus.webp", "avatarAlt": "assets/avatars/aus.svg", "clock": [10.96, 3.97, 4.05, 4.69, 0.33], "gdp": 71934.4033931263, "life": 6.916, "wh": 1611.13, "ret": 65.3}, {"iso3": "ZAF", "name": "Thabo", "emoji": "\ud83c\uddff\ud83c\udde6", "continent": "Africa", "sig": "The heaviest work-year here", "bio": "Thabo's year is the longest of the five, but he still makes time to gather with friends after hours. South Africa carries the heaviest annual workload here, on the lowest income, retiring by 63.", "country": "South Africa", "upwF": 4.16, "upwM": 1.72, "trivia": [{"ic": "&#128197;", "t": "South Africa works <b>2181 hours a year</b>, the 3rd longest work-year of the 35, <b>694 hours</b> more than France."}, {"ic": "&#127881;", "t": "And yet he still keeps <b>5h06</b> a day for himself, more than any of our other four. A packed year that still leaves room to switch off."}, {"ic": "&#128178;", "t": "He does it on the 2nd lowest income of the 35, about <b>$16k</b> a year per person."}, {"ic": "&#127958;", "t": "He stops at <b>63</b>, <b>8 years</b> earlier than Haruto."}], "video": "assets/video/zaf.mp4", "videoPoster": "assets/video/zaf-poster.webp", "avatar": "assets/avatars/zaf.webp", "avatarAlt": "assets/avatars/zaf.svg", "clock": [11.58, 4.01, 3.04, 5.1, 0.27], "gdp": 15905.6794419658, "life": 5.009, "wh": 2181.43, "ret": 63.1}], "model": {"paw_h": {"a": 7.709726233881948, "b": -0.29023008894836877}, "lei_h": {"a": -0.7774232858913628, "b": 0.5087931375117711}, "upw_h": {"a": 3.3887612358645165, "b": -0.008203064056919758}}, "avg": {"pca": 11.087142857142858, "paw": 4.5288571428571425, "upw": 3.2988571428571425, "lei": 4.798857142857143, "oth": 0.28714285714285714, "wh": 1681.3625714285715, "ret": 65.24285714285715, "life": 6.516571428571429, "gdp": 64220.508489389504}, "wvl": {"r": -0.6596150320393162, "a": 7.267554974940149, "b": -0.5451039311267758, "rIncomeHours": -0.7357403586967127, "quartiles": [{"n": 9, "paw": 3.636666666666667, "lei": 5.111111111111111}, {"n": 9, "paw": 4.213333333333334, "lei": 5.208888888888889}, {"n": 9, "paw": 4.753333333333334, "lei": 4.7588888888888885}, {"n": 8, "paw": 5.635, "lei": 4.03125}]}};
 const CATS=['Personal care','Paid work','Unpaid work','Leisure','Other'];
@@ -1909,7 +1985,12 @@ function drawRoad(){
     el.className='rmk'+(personaISO.includes(c.iso3)?' p':'');
     el.style.left=x+'px';el.style.bottom=(lane*46)+'px';
     el.title=c.country+', retires at '+c.ret.toFixed(1);
-    el.innerHTML=`<img src="assets/flags/${c.iso2}.png" alt="${c.country} flag" loading="lazy">`;
+    // o alt carrega o numero, nao so o nome do pais: era a ultima leitura da pagina
+    // que existia apenas no hover. Fazer os 35 marcadores focaveis resolveria para
+    // o teclado e criaria 35 paradas de tab, o que e pior; no alt a informacao fica
+    // disponivel sem custo de navegacao, e na mesma ordem em que aparece na tela.
+    el.innerHTML=`<img src="assets/flags/${c.iso2}.png" loading="lazy"
+      alt="${c.country}, retires at ${c.ret.toFixed(1)}">`;
     rField.appendChild(el);});
   for(let a=60;a<=72;a+=2){
     const t=document.createElement('div');t.className='rtick';t.style.left=xp(a)+'px';t.textContent=a;rRoad.appendChild(t);}
@@ -1981,8 +2062,8 @@ function renderPred(){
     : `Even where the gender gap is small, income alone doesn't close it in our data.`;
   const catchTxt=`${genderLine} <b>Prosperity won't split the second shift</b>: that needs policy, not just a bigger economy. And this is a <b>pattern, not a promise</b>: freed-up hours can quietly become screen time, and shorter workdays usually take deliberate choices (4-day weeks, paid leave).`;
   document.getElementById('predText').innerHTML=`
-    <div class="ptcard up"><h4>&#127793; The bright side</h4><p>${up}</p></div>
-    <div class="ptcard catch"><h4>&#9888;&#65039; The catch</h4><p>${catchTxt}</p></div>`;
+    <div class="ptcard up"><h3>&#127793; The bright side</h3><p>${up}</p></div>
+    <div class="ptcard catch"><h3>&#9888;&#65039; The catch</h3><p>${catchTxt}</p></div>`;
 }
 selC.addEventListener('change',renderPred);
 document.getElementById('predGrowth').addEventListener('input',()=>{renderPred();sliderText();});
@@ -2083,9 +2164,17 @@ mapPick.addEventListener('change',()=>{
 });
 
 const gEl=document.getElementById('globe');
+/* Two ways this can fail, and only one of them was handled: the library not loading,
+   and the browser refusing a WebGL context (hardware acceleration off, an old
+   machine, a locked-down corporate profile). The second one threw and left an empty
+   box with no explanation. Both now say the same thing, and point at the country
+   list above, which needs no WebGL and reaches every country. */
+const globeFallback=msg=>{gEl.innerHTML=
+  `<div class="globefail">${msg}<br><span>Every country is still available from the
+   <b>list above</b>.</span></div>`;};
 if(typeof Globe==='undefined'){
-  gEl.innerHTML='<div style="color:#a8afd2;padding:30px;text-align:center">Globe library failed to load. Check that assets/lib/globe.gl.min.js exists.</div>';
-}else{
+  globeFallback('The 3D globe could not load.');
+}else try{
   const globe=Globe()(gEl)
     .globeImageUrl('assets/img/earth-day.jpg')
     .backgroundColor('rgba(0,0,0,0)')
@@ -2101,8 +2190,11 @@ if(typeof Globe==='undefined'){
   requestAnimationFrame(sizeGlobe);window.addEventListener('resize',sizeGlobe);
   globe.pointOfView({lat:15,lng:-20,altitude:2.35});
   const ctr=globe.controls();ctr.autoRotate=!reduce;ctr.autoRotateSpeed=0.62;ctr.enableZoom=true;
+}catch(e){
+  globeFallback('This device could not start the 3D globe.');
 }
 
+});
 </script>
 </body>
 </html>
