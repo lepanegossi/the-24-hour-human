@@ -12,7 +12,9 @@ name: Publish dashboard to Pages
 
 on:
   push:
-    branches: [redesign-visuals]
+    # o mesmo workflow roda em dois repos: a fonte, em redesign-visuals, e a
+    # vitrine da organizacao, em main
+    branches: [main, redesign-visuals]
     paths:
       - "the-24-hour-human/**"
       - ".github/workflows/pages.yml"
@@ -82,7 +84,17 @@ jobs:
 
       - name: Confirm the live site is serving this build
         run: |
-          url="https://lepanegossi.github.io/the-24-hour-human/"
+          # a URL nao pode ser fixa: o mesmo workflow roda em dois repos. Um repo
+          # chamado <conta>.github.io serve na raiz da conta; qualquer outro serve
+          # sob o proprio nome.
+          owner="${GITHUB_REPOSITORY%%/*}"
+          repo="${GITHUB_REPOSITORY##*/}"
+          if [ "$repo" = "$owner.github.io" ]; then
+            url="https://$owner.github.io/"
+          else
+            url="https://$owner.github.io/$repo/"
+          fi
+          echo "verificando $url"
           for i in $(seq 1 90); do
             if curl -fsS --max-time 20 "$url" | grep -q "$GITHUB_SHA"; then
               echo "live after $((i * 20))s: $url"
