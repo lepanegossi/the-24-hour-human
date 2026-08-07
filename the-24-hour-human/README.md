@@ -3,7 +3,11 @@
 An interactive data story about how the world spends the same **1,440 minutes** a day, across 35 countries.
 Theme: *"How the world lives, thrives, and connects."*
 
-**Live:** <https://lepanegossi.github.io/the-24-hour-human/>
+**Live:** <https://the-24-hour-human.github.io/>
+
+That is the address to share. A second copy publishes from a personal fork,
+`lepanegossi/the-24-hour-human`, which is where the redesign was drafted; both
+declare the organisation URL as canonical, so a link preview never shows the draft.
 
 Every push to `redesign-visuals` that touches this folder rebuilds and republishes
 it. The workflow lives at the repository root, in `.github/workflows/`, runs
