@@ -1,5 +1,5 @@
 """
-Gera dashboard.html (mockup VizCon 2026 — The 24-Hour Human) a partir dos CSVs
+Gera dashboard.html (mockup VizCon 2026, The 24-Hour Human) a partir dos CSVs
 reais do repo da Nath. Reproduzível: se o CSV mudar, regenera com números certos.
 
 Tema: DAYLIGHT (claro). Personas com avatares ilustrados (assets/avatars/<iso3>.svg).
@@ -75,11 +75,11 @@ gender = gaps[:5] + gaps[-5:]
 
 PERS = [
     ("FRA", "Camille", "Europe", "The world's longest personal care",
-     "Camille starts slow, with a warm croissant and a coffee that's in no hurry. In France the day makes room to live: the world's longest meals, unrushed mornings, and an early finish line, with most retiring by 61."),
+     "Camille starts slow, with a warm croissant and a coffee that's in no hurry. In France the day makes room to live: the longest personal-care time of the 35, unrushed mornings, and an early finish line, with most retiring by 61."),
     ("JPN", "Haruto", "Asia", "The most paid work per day",
      "Haruto's alarm wins every morning. Japan runs on work, so he logs more paid hours than anyone here, grabs a quick bowl of ramen between shifts, and stays on the job until about 71."),
     ("MEX", "Sofía", "Americas", "The least leisure of all 35",
-     "Between paid work and a full house, Sofía barely gets to sit down. Mexico's day is the fullest of all, with the least downtime, so if anyone has earned a spa day it's her, and retirement still waits until her early 70s."),
+     "Between paid work and a full house, Sofía barely gets to sit down. Mexico's day is the fullest of all, with the least downtime, so if anyone has earned a spa day it's her, and she keeps going into her early 70s."),
     ("AUS", "Mia", "Oceania", "The most balanced day",
      "Work in the morning, waves at sunset. Australia keeps things in balance, so Mia splits her hours evenly across work, home and leisure, and clocks out for good around 65."),
     ("ZAF", "Thabo", "Africa", "The heaviest work-year here",
@@ -129,13 +129,13 @@ def build_trivia():
     low_pca = _edge("pca_h", high=False)
     out["FRA"] = [
         ("&#127837;", f"Nobody lingers over the basics like France: <b>{_hm(fra['pca_h'])}</b> a day "
-                      f"sleeping, eating and getting ready — {_sup(_rank('FRA', 'pca_h'), 'longest')} "
+                      f"sleeping, eating and getting ready, {_sup(_rank('FRA', 'pca_h'), 'longest')} "
                       f"of the 35, and <b>{_hm(fra['pca_h'] - low_pca['pca_h'])}</b> more than "
                       f"Sof&iacute;a's {low_pca['country']} at the other end."),
         ("&#9749;", f"Her <b>{_hm(fra['lei_h'])}</b> of daily leisure piles up into "
                     f"<b>{_days(fra['lei_h']):.0f} entire 24-hour days</b> of free time a year."),
         ("&#128188;", f"Haruto does <b>{_hm(jpn['paw_h'] - fra['paw_h'])}</b> more paid work than her "
-                      f"every single day — about <b>{_days(jpn['paw_h'] - fra['paw_h']):.0f} extra days</b> "
+                      f"every single day, about <b>{_days(jpn['paw_h'] - fra['paw_h']):.0f} extra days</b> "
                       f"at work per year."),
         ("&#127958;", f"She stops working at <b>{fra['retirement_age_men']:.0f}</b>, "
                       f"<b>{jpn['retirement_age_men'] - fra['retirement_age_men']:.0f} years</b> "
@@ -148,19 +148,19 @@ def build_trivia():
         ("&#9200;", f"Japan works more paid hours than anywhere else in the data: "
                     f"<b>{_hm(jpn['paw_h'])}</b> a day, {_sup(_rank('JPN', 'paw_h'), 'most')} of the 35."),
         ("&#129529;", f"And the least unpaid work: <b>{_hm(jpn['upw_h'])}</b> a day, "
-                      f"{_sup(_rank('JPN', 'upw_h', False), 'lowest')} of the 35. Someone is still doing it "
-                      f"— Japanese women do <b>{gap_jpn} minutes more</b> of it a day than men."),
+                      f"{_sup(_rank('JPN', 'upw_h', False), 'lowest')} of the 35. Someone is still doing it, "
+                      f"Japanese women do <b>{gap_jpn} minutes more</b> of it a day than men."),
         ("&#127958;", f"He keeps working until about <b>{jpn['retirement_age_men']:.0f}</b>. "
                       f"Camille will have been retired for a decade by then."),
         ("&#127836;", f"His <b>{_hm(jpn['lei_h'])}</b> of daily downtime is <b>{lei_gap_jpn} minutes</b> "
-                      f"below the 35-country average — the price of that workday."),
+                      f"below the 35-country average, the price of that workday."),
     ]
 
     work_mex = mex["paw_h"] + mex["upw_h"]
     r_work = [r["iso3"] for r in sorted(cp, key=lambda r: -(r["paw_h"] + r["upw_h"]))].index("MEX") + 1
     hi_lei = _edge("lei_h", high=True)
     out["MEX"] = [
-        ("&#128336;", f"Paid work plus work at home adds up to <b>{_hm(work_mex)}</b> a day — "
+        ("&#128336;", f"Paid work plus work at home adds up to <b>{_hm(work_mex)}</b> a day, "
                       f"{_sup(r_work, 'heaviest')} total workload of the 35."),
         ("&#128564;", f"Which leaves {_sup(_rank('MEX', 'lei_h', False), 'least')} downtime of the 35: "
                       f"<b>{_hm(mex['lei_h'])}</b>, while {hi_lei['country']} enjoys "
@@ -175,8 +175,8 @@ def build_trivia():
     r_bal = [r["iso3"] for r in sorted(cp, key=spread)].index("AUS") + 1
     out["AUS"] = [
         ("&#9878;", f"Work, home and leisure sit closer together in Australia than almost anywhere: "
-                    f"<b>{_hm(aus['paw_h'])}</b>, <b>{_hm(aus['upw_h'])}</b> and <b>{_hm(aus['lei_h'])}</b> "
-                    f"— {_sup(r_bal, 'most balanced')} day of the 35."),
+                    f"<b>{_hm(aus['paw_h'])}</b>, <b>{_hm(aus['upw_h'])}</b> and <b>{_hm(aus['lei_h'])}</b>, "
+                    f"{_sup(r_bal, 'most balanced')} day of the 35."),
         ("&#127940;", f"Her <b>{_hm(aus['lei_h'])}</b> of daily leisure is "
                       f"<b>{_hm(aus['lei_h'] - mex['lei_h'])}</b> more than Sof&iacute;a gets."),
         ("&#127958;", f"She clocks out for good around <b>{aus['retirement_age_men']:.0f}</b>, "
@@ -188,11 +188,11 @@ def build_trivia():
 
     out["ZAF"] = [
         ("&#128197;", f"South Africa works <b>{zaf['annual_working_hours']:.0f} hours a year</b>, "
-                      f"{_sup(_rank('ZAF', 'annual_working_hours'), 'longest')} work-year of the 35 — "
+                      f"{_sup(_rank('ZAF', 'annual_working_hours'), 'longest')} work-year of the 35, "
                       f"<b>{zaf['annual_working_hours'] - fra['annual_working_hours']:.0f} hours</b> "
                       f"more than France."),
         ("&#127881;", f"And yet he still keeps <b>{_hm(zaf['lei_h'])}</b> a day for himself, more than "
-                      f"any of our other four. One of the longest work-years, and still time for friends."),
+                      f"any of our other four. A packed year that still leaves room to switch off."),
         ("&#128178;", f"He does it on {_sup(_rank('ZAF', 'gdp_per_capita_ppp', False), 'lowest')} income "
                       f"of the 35, about <b>${zaf['gdp_per_capita_ppp'] / 1000:.0f}k</b> a year per person."),
         ("&#127958;", f"He stops at <b>{zaf['retirement_age_men']:.0f}</b>, "
@@ -268,7 +268,7 @@ for iso, name, cont, sig, bio in PERS:
         "trivia": [{"ic": ic, "t": t} for ic, t in TRIVIA[iso]],
         # Slot de vídeo: o personagem falando sobre o próprio dia. Enquanto o
         # arquivo não existir, a ficha mostra um placeholder no lugar.
-        # O poster é o primeiro quadro do próprio vídeo, em 16:9 — usar o avatar
+        # O poster é o primeiro quadro do próprio vídeo, em 16:9, usar o avatar
         # quadrado aqui fazia o navegador cortar o centro e dar zoom no rosto.
         # Para gerar o de um vídeo novo:
         #   ffmpeg -i fra.mp4 -frames:v 1 -vf scale=1280:-2 frame.png
@@ -364,8 +364,14 @@ ICON_PATHS = {
     "chartjs": "M12 0L1.605 6v12L12 24l10.395-6V6zm0 1.41l9.172 5.295v10.59L12 22.59l-9.172-5.295V6.705zM5.902 8.334c-1.306 0-1.983.956-2.574 2.41v6.262L12 22.014l8.672-5.008v-5.971c-.447-.264-.894-.412-1.336-.412-4.275 0-3.97 4.885-6.717 5.8-2.748.917-3.511-8.089-6.717-8.089zm12.364.457c-2.9 0-2.137 4.732-5.342 4.732-1.63 0-2.52-1.317-3.477-1.981.148.326.3.655.442.98.467 1.068.922 2.09 1.379 2.734.228.322.455.541.644.644a.595.595 0 0 0 .549.05c.558-.187.968-.571 1.36-1.112.39-.541.74-1.228 1.154-1.916.413-.688.894-1.385 1.59-1.918.695-.534 1.607-.881 2.77-.881.465 0 .908.136 1.337.352v-.121c-.633-.849-1.348-1.563-2.406-1.563zm-6.68.152c-.868 0-1.491.82-2.076 2.06.094.055.192.106.277.167 1.06.761 1.798 1.853 3.137 1.853.678 0 1.067-.218 1.418-.585-.722-1.546-1.432-3.492-2.756-3.495Z",
     "threejs": "M.38 0a.268.268 0 0 0-.256.332l2.894 11.716a.268.268 0 0 0 .01.04l2.89 11.708a.268.268 0 0 0 .447.128L23.802 7.15a.268.268 0 0 0-.112-.45l-5.784-1.667a.268.268 0 0 0-.123-.035L6.38 1.715a.268.268 0 0 0-.144-.04L.456.01A.268.268 0 0 0 .38 0zm.374.654L5.71 2.08 1.99 5.664zM6.61 2.34l4.864 1.4-3.65 3.515zm-.522.12l1.217 4.926-4.877-1.4zm6.28 1.538l4.878 1.404-3.662 3.53zm-.52.13l1.208 4.9-4.853-1.392zm6.3 1.534l4.947 1.424-3.715 3.574zm-.524.12l1.215 4.926-4.876-1.398zm-15.432.696l4.964 1.424-3.726 3.586zM8.047 8.15l4.877 1.4-3.66 3.527zm-.518.137l1.236 5.017-4.963-1.432zm6.274 1.535l4.965 1.425-3.73 3.586zm-.52.127l1.235 5.012-4.958-1.43zm-9.63 2.438l4.873 1.406-3.656 3.523zm5.854 1.687l4.863 1.403-3.648 3.51zm-.54.04l1.214 4.927-4.875-1.4zm-3.896 4.02l5.037 1.442-3.782 3.638z",
     "ffmpeg": "M21.72 17.91V6.5l-.53-.49L9.05 18.52l-1.29-.06L24 1.53l-.33-.95-11.93 1-5.75 6.6v-.23l4.7-5.39-1.38-.77-9.11.77v2.85l1.91.46v.01l.19-.01-.56.66v10.6c.609-.126 1.22-.241 1.83-.36L14.12 5.22l.83-.04L0 21.44l9.67.82 1.35-.77 6.82-6.74v2.15l-5.72 5.57 11.26.95.35-.94v-3.16l-3.29-.18c.434-.403.858-.816 1.28-1.23z",
+    "kiro": "M4.594 6.677C6.67-2.226 18.746-2.211 21.16 6.632c.353 1.297 1.725 7.582-1.673 13.747-1.545 2.797-5.841 5.49-6.99 1.883C8.6 25.477 3.315 24.1 5.789 18.609l-.318.143c-3.57 1.305-3.863-1.208-3.173-2.513.45-.84.727-1.335.937-1.897.353-.975.458-1.568.593-2.498.27-1.837.277-3.607.765-5.167zm8.37.01a.92.92 0 00-.81.428c-.217.323-.33.825-.33 1.462 0 .705.15 1.89 1.14 1.89h.008c.757 0 1.214-.705 1.214-1.89 0-.622-.127-1.125-.367-1.455a1.014 1.014 0 00-.855-.435zm4.08 0a.92.92 0 00-.81.428c-.217.323-.33.825-.33 1.462 0 .705.15 1.89 1.14 1.89h.008c.757 0 1.215-.705 1.215-1.89 0-.622-.128-1.125-.368-1.455a1.014 1.014 0 00-.855-.435z",
+    "heygen": "M8.885 17.9c7.376 3.79 14.242-6.406 15.533-4.183C25.459 16.983 22.813 21.123 13.31 25c-1.215.828-3.601.218-4.642-1.742-.391-2.832-1.465-6.224.216-5.36z|M20.947 9.01c0 5.752-11.541 7.103-12.279 14.249C4.547 12.889 15.61 9.839 16.782 4c1.822 1.656 4.165 2.963 4.165 5.01zm-8.374 17.124c2.994 5.229 17.615-1.046 11.845-12.418-3.254 9.891-13.797 7.887-11.845 12.418z",
     "github": "M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"
 }
+
+# duas marcas fogem do padrao das outras: a da HeyGen tem viewBox proprio e a do
+# Kiro precisa de fill-rule para os olhos nao virarem mancha
+ICON_BOX = {"heygen": ("0 0 33 32", ""), "kiro": ("0 0 24 24", ' fill-rule="evenodd"')}
 
 TOOLS = [
     ("python",     "Python",        "builds the page",  "#2f6690", "#7ab8e8"),
@@ -377,6 +383,10 @@ TOOLS = [
     ("threejs",    "Three.js",      "the globe",        "#2b3252", "#e2e7ff"),
     ("ffmpeg",     "FFmpeg",        "video & stills",   "#1a7a2e", "#5fce77"),
     ("github",     "GitHub Pages",  "hosting",          "#2b3138", "#e2e7ff"),
+    # Kiro e HeyGen nao estao no simple-icons; os dois desenhos vieram junto com a
+    # revisao da Camila, que foi quem pediu o credito, e ja estao no formato certo
+    ("kiro",       "Kiro",          "predictive model", "#6b4fd6", "#b9a5ff"),
+    ("heygen",     "HeyGen",        "persona videos",   "#12b3a6", "#5fe0d6"),
 ]
 
 # Ordered the way the work happened: the data first, then the story built on it,
@@ -398,11 +408,16 @@ def tools_html():
     """Uma tile por tecnologia + a lista de quem fez. Vai no fim da pagina."""
     tiles = []
     for i, (key, name, note, c, cd) in enumerate(TOOLS):
+        box, extra = ICON_BOX.get(key, ("0 0 24 24", ""))
         tiles.append(
             f'<li class="tool" style="--i:{i};--tc:{c};--tcd:{cd}">'
-            f'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
-            f'<path d="{ICON_PATHS[key]}"/></svg>'
-            f'<b>{name}</b><i>{note}</i></li>'
+            f'<svg viewBox="{box}"{extra} aria-hidden="true" focusable="false">'
+            # a marca da HeyGen sao dois desenhos separados; as outras sao um so.
+            # Nao da para quebrar em todo "M": um M no meio do path e um subpath do
+            # mesmo desenho, e separar subpath quebra o fill-rule que abre os olhos
+            # do Kiro. Por isso o dado diz onde ha mais de um path, com "|".
+            + "".join(f'<path d="{d}"/>' for d in ICON_PATHS[key].split("|"))
+            + f'</svg><b>{name}</b><i>{note}</i></li>'
         )
     # A photo if one has been dropped into assets/team/, the initials on the
     # gradient if not. Optional on purpose: this is a public page, so a face only
@@ -739,12 +754,15 @@ html[data-mood="dark"] .aha{box-shadow:inset 0 -.48em 0 rgba(255,195,122,.15)}
 .crednote{font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:20px}
 .crednote b{color:var(--ink);font-weight:600}
 
-/* An explicit column count, not flex-wrap: nine tiles at 112px each wrapped
-   8 + 1, which reads as a mistake. The counts divide evenly at every step
-   (9 across, 5 + 4, then a 3x3 block). */
-.toolrow{list-style:none;display:grid;grid-template-columns:repeat(9,1fr);gap:10px}
-@media(max-width:1020px){.toolrow{grid-template-columns:repeat(5,1fr)}}
-@media(max-width:640px){.toolrow{grid-template-columns:repeat(3,1fr)}}
+/* An explicit column count, not flex-wrap: tiles left to wrap on their own ended
+   up 10 + 1, which reads as a mistake. Eleven is an awkward number to divide, so
+   each step is chosen to keep the last row full or nearly so: 11 across, then
+   6 + 5, then 4 + 4 + 3, then 3 + 3 + 3 + 2. */
+.toolrow{list-style:none;display:grid;grid-template-columns:repeat(11,1fr);gap:10px}
+.ai ul.toolrow{margin:0}
+@media(max-width:1120px){.toolrow{grid-template-columns:repeat(6,1fr)}}
+@media(max-width:700px){.toolrow{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:520px){.toolrow{grid-template-columns:repeat(3,1fr)}}
 .tool{padding:17px 6px 14px;border-radius:16px;background:var(--card-2);
  border:1px solid var(--line);text-align:center;display:flex;flex-direction:column;
  align-items:center;gap:9px;opacity:0;transform:translateY(14px);
@@ -1307,7 +1325,7 @@ BODY = r"""
   <div class="kicker">An interactive data story &middot; VizCon 2026</div>
   <h1>The 24-Hour Human</h1>
   <p class="thesis">The fairest thing the world hands out, and the most unequal thing we do with it.</p>
-  <p class="lead">Everyone alive gets the same <b>1,440 minutes</b> tomorrow morning. Where you were born quietly rewrites how you spend them &mdash; how long you work, how much you rest, who carries the work nobody pays for. Follow the day and watch it happen.</p>
+  <p class="lead">Everyone alive gets the same <b>1,440 minutes</b> tomorrow morning. Where you were born quietly rewrites how you spend them, how long you work, how much you rest, who carries the work nobody pays for. Follow the day and watch it happen.</p>
   <div class="stats">
     <div class="stat" style="--ac:#f08a24">
       <svg class="ki" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 1.8"/></svg>
@@ -1330,7 +1348,7 @@ BODY = r"""
   <div class="sintro">
   <div class="shead"><span class="chapno">01</span><span class="sh">Meet our humans</span><span class="tchip">07:00 &middot; Morning</span></div>
   <h2>One day, <em>five lives</em></h2>
-  <p class="sub">Meet our neighbors from around the world, one from each continent. Here's where you'll see how a single day can look completely different depending on where you stand, and how that everyday routine really plays out across the globe. What could each place add to your own day? Each ring is one real 24-hour day, so hover it to explore the hours &mdash; then <span class="aha">click any card to open that person's day in full</span>, with their story, their numbers against the world, and them telling you about it.</p>
+  <p class="sub">Meet our neighbors from around the world, one from each continent. Here's where you'll see how a single day can look completely different depending on where you stand, and how that everyday routine really plays out across the globe. What could each place add to your own day? Each ring is one real 24-hour day, so hover it to explore the hours, then <span class="aha">click any card to open that person's day in full</span>, with their story, their numbers against the world, and them telling you about it.</p>
   </div>
   <div class="pgrid" id="personaGrid"></div>
   <div class="pdetail" id="personaDetail" tabindex="-1" hidden></div>
@@ -1340,7 +1358,7 @@ BODY = r"""
   <div class="sintro">
   <div class="shead"><span class="chapno">02</span><span class="sh">The first surprise</span><span class="tchip">09:00 &middot; Morning</span></div>
   <h2>Who does it <em>most?</em></h2>
-  <p class="sub">The same 1,440 minutes, split five ways &mdash; and every one of those slices has a world champion. <span class="aha">Pick a piece of the day</span> to see which countries spend the most of it, and which one sits at the other end. Some rankings are exactly what you would guess. One of them is the first real surprise in this data.</p>
+  <p class="sub">The same 1,440 minutes, split five ways, and every one of those slices has a world champion. <span class="aha">Pick a piece of the day</span> to see which countries spend the most of it, and which one sits at the other end. Some rankings are exactly what you would guess. One of them is the first real surprise in this data.</p>
   </div>
   <div class="tgrid" id="topicGrid"></div>
   <div class="trank" id="topicRank"></div>
@@ -1419,7 +1437,7 @@ BODY = r"""
   <div class="sintro">
   <div class="shead"><span class="chapno">06</span><span class="sh">The trade-off</span><span class="tchip">21:30 &middot; Evening</span></div>
   <h2>Work vs. <em>free time</em></h2>
-  <p class="sub">Remember our five friends? Every flag is one country, placed by how long its day at work runs and how much of the day is left for itself. <span class="aha">The harder a country works, the less it plays</span> &mdash; and you can watch the flags drift down as they move right. Camille takes it slow, Sof&iacute;a barely catches a break &mdash; and our five appear as their own faces, so you can spot them without hunting.</p>
+  <p class="sub">Remember our five friends? Every flag is one country, placed by how long its day at work runs and how much of the day is left for itself. <span class="aha">The harder a country works, the less it plays</span>, and you can watch the flags drift down as they move right. Camille takes it slow, Sof&iacute;a barely catches a break, and our five appear as their own faces, so you can spot them without hunting.</p>
   </div>
   <div class="panel">
     <div class="scplot" id="scPlot">
@@ -1560,14 +1578,14 @@ BODY = r"""
       <h2>Where the data comes from</h2>
       <ul>
         <li><a href="https://www.oecd.org/en/data/datasets/time-use-database.html"
-          target="_blank" rel="noopener">OECD Time Use Database</a> &mdash; the five slices of the
-          day, split by sex, for people aged 15&ndash;64. Minutes per day, pulled from the SDMX
+          target="_blank" rel="noopener">OECD Time Use Database</a>, the five slices of the
+          day, split by sex, for people aged 15 to 64. Minutes per day, pulled from the SDMX
           dataflow <code>DSD_TIME_USE@DF_TIME_USE</code>.</li>
         <li><a href="https://data.worldbank.org/indicator/NY.GDP.PCAP.PP.CD"
-          target="_blank" rel="noopener">World Bank</a> &mdash; GDP per capita, PPP
+          target="_blank" rel="noopener">World Bank</a>, GDP per capita, PPP
           (indicator <code>NY.GDP.PCAP.PP.CD</code>), used as the income measure.</li>
         <li><a href="https://ourworldindata.org/time-use" target="_blank" rel="noopener">Our World
-          in Data</a> &mdash; life satisfaction (Cantril ladder), annual working hours, average
+          in Data</a>, life satisfaction (Cantril ladder), annual working hours, average
           effective retirement age, and leisure by sex.</li>
       </ul>
     </div>
@@ -1575,8 +1593,8 @@ BODY = r"""
       <h2>How to read these numbers</h2>
       <ul>
         <li><b>Every "per day" figure is an average over everyone, and over every
-          day.</b> OECD divides a country's total time by its whole adult population &mdash; people
-          in paid work and people out of it &mdash; and across all seven days, holidays included.
+          day.</b> OECD divides a country's total time by its whole adult population, people
+          in paid work and people out of it, and across all seven days, holidays included.
           So paid work per day is not the length of a working day: __PAW_NOTE__.</li>
         <li>The five categories sum to 24 hours, so every chart here is a share of one real day.
           The one exception is <b>"a year of work"</b>, which is counted per worker rather than
@@ -1589,6 +1607,9 @@ BODY = r"""
           is a snapshot and not a time series. The extract behind this page does not carry the year
           per country, which is why no chart is dated.</li>
         __DEF_NOTE__
+        <li><b>Retirement age is the men's figure.</b> The source carries the average effective
+          retirement age for men, so the "Working until when?" road reflects men across countries,
+          not women.</li>
         <li><b>Coverage is 35 OECD and partner countries.</b> No South American country is in the
           time-use database, which is why the map has a hole over the continent.</li>
         <li>The 2050 screen is an <b>illustrative model</b>, not a forecast: it reads the
@@ -2103,7 +2124,7 @@ document.getElementById('qbtn').addEventListener('click',()=>{
 const TOPICS=[
   {k:'pca',img:'personal-care',col:COL[0],unit:'h',
    name:'Sleep &amp; self-care',
-   what:'Sleeping, eating, washing, getting ready. Not pure sleep &mdash; the data does not separate it.',
+   what:'Sleeping, eating, washing, getting ready. Not pure sleep, the data does not separate it.',
    fb:'linear-gradient(150deg,#5a67d8,#8b5cf6)'},
   {k:'paw',img:'paid-work',col:COL[1],unit:'h',
    name:'Paid work',
@@ -2163,15 +2184,15 @@ function showTopic(i){
     <div ${st('trankcap')}><h3>${t.name}</h3><span>${t.what}</span></div>
     <div ${st('panel')}><div class="bubbles">${bubbles}</div>
       <p class="tnote">Top ten of 35, biggest circle first. At the other end sits
-        <b>${last.country}</b> with <b>${fmt(lo,t.unit)}</b> &mdash;
+        <b>${last.country}</b> with <b>${fmt(lo,t.unit)}</b>,
         <b>${t.unit==='h'?hm(hi-lo):Math.round(hi-lo)+'h'}</b> less than
         ${sorted[0].country}.${t.k==='paw'?` And here is the surprise: this ranking flips the
-        usual assumption. The countries at the top are not the richest ones &mdash; wealth is
+        usual assumption. The countries at the top are not the richest ones, wealth is
         what lets a nation ease off the clock.`:''}${t.k==='wh'?` Stretched over a year the
         gap stops being abstract: that is nearly <b>${Math.round((hi-lo)/8)} working days</b>
         of difference between the top and the bottom of this list.`:''}
         <span class="tbase">${t.k==='wh'
-          ? 'Counted per worker, not per person &mdash; the only figure on this page that is.'
+          ? 'Counted per worker, not per person, the only figure on this page that is.'
           : 'A population average: the country total spread over every adult, working or not, '+
             'and over all seven days. Not the length of a shift.'}</span></p>
     </div>`;
@@ -2285,7 +2306,7 @@ function drawWorkVsLeisure(){
   document.getElementById('scNote').innerHTML=
     `Split the 35 into quarters by how long they work and the drop is not gradual: the three
      lighter-working quarters all sit near <b>${hm(light)}</b> of leisure, and only the
-     hardest-working quarter breaks away at <b>${hm(q[3].lei)}</b> &mdash; about
+     hardest-working quarter breaks away at <b>${hm(q[3].lei)}</b>, about
      <b>${gap} minutes</b> less every single day. Working somewhat more costs you little.
      Working a lot more costs you an hour.`;
 }
@@ -2330,7 +2351,7 @@ function drawRoad(){
     const el=document.createElement('div');
     el.className='rmk'+(personaISO.includes(c.iso3)?' p':'');
     el.style.left=x+'px';el.style.bottom=(lane*46)+'px';
-    el.title=c.country+' — retires at '+c.ret.toFixed(1);
+    el.title=c.country+', retires at '+c.ret.toFixed(1);
     el.innerHTML=`<img src="assets/flags/${c.iso2}.png" alt="${c.country} flag" loading="lazy">`;
     rField.appendChild(el);});
   for(let a=60;a<=72;a+=2){
@@ -2432,7 +2453,7 @@ sliderText();
          drop is not gradual. Three of those quarters all keep near <b>${hm(light)}</b> of
          free time. Only the hardest-working quarter breaks away, at <b>${hm(q[3].lei)}</b>.`,
         `Working somewhat more costs almost nothing. Working a lot more costs an hour a day.
-         Which means the hour sits at a threshold, not on a slope &mdash; and thresholds are
+         Which means the hour sits at a threshold, not on a slope, and thresholds are
          set by someone.`]},
     {c:COL[1],n:'02',t:'Wealth buys back the wrong hour',
      big:'&asymp;0 min',
@@ -2440,11 +2461,11 @@ sliderText();
          countries do get time back: leisure climbs <b>+${(M.lei_h.b*60).toFixed(0)} min</b>
          and paid work falls <b>${(M.paw_h.b*60).toFixed(0)} min</b> for every step up in
          income.`,
-        `Unpaid work moves by that number at the top &mdash; effectively nothing. Prosperity
+        `Unpaid work moves by that number at the top, effectively nothing. Prosperity
          shortens the workday and leaves the second shift exactly where it was.
          <b>Money is not the lever for that one.</b>`]},
     {c:COL[2],n:'03',t:'What gets counted gets argued about',
-     big:worst.country===best.country?'&mdash;':Math.round((worst.gap-best.gap)*60)+' min',
+     big:worst.country===best.country?'n/a':Math.round((worst.gap-best.gap)*60)+' min',
      p:[`The spread between the widest gender gap here and the narrowest is that big:
          <b>${worst.country}</b> at <b>${Math.round(worst.gap*60)} min</b> a day against
          <b>${best.country}</b> at <b>${Math.round(best.gap*60)} min</b>. Same century,
